@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
         }) => {
           // 获取创建者信息
           const { data: creator } = await supabase
-            .from('profiles')
+            .from('users')
             .select('id, nickname, avatar_url')
             .eq('id', task.creator_id)
             .maybeSingle()

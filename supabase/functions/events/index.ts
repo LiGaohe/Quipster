@@ -57,7 +57,7 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
   const now = new Date().toISOString()
 
   // 先获取活动（带 organizer）并计数
-  // 使用 RPC 或者分步查询。这里用分步：先按条件查 events，再关联 profiles。
+  // 使用 RPC 或者分步查询。这里用分步：先按条件查 events，再关联 users。
   let query = db
     .from('events')
     .select(
@@ -96,13 +96,13 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
 
   // 批量获取 organizer 信息
   const organizerIds: string[] = [...new Set(eventList.map((e: any) => e.organizer_id))]
-  const { data: profiles } = await db
-    .from('profiles')
+  const { data: users } = await db
+    .from('users')
     .select('id, nickname, avatar_url')
     .in('id', organizerIds)
 
   const profileMap = new Map<string, any>()
-  for (const p of profiles ?? []) profileMap.set(p.id, p)
+  for (const p of users ?? []) profileMap.set(p.id, p)
 
   // 批量查询当前用户报名情况
   const eventIds: string[] = eventList.map((e: any) => e.id)

@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
       // 如果 RPC 不存在，则直接 UPDATE（兜底方案）
       if (creditUpdateErr) {
         const { data: profileData, error: profileFetchErr } = await supabase
-          .from('profiles')
+          .from('users')
           .select('credit_score')
           .eq('id', answer.user_id)
           .maybeSingle()
@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
         const newScore = Math.min(100, currentScore + 5)
 
         const { error: profileUpdateErr } = await supabase
-          .from('profiles')
+          .from('users')
           .update({ credit_score: newScore })
           .eq('id', answer.user_id)
 

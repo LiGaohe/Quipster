@@ -86,7 +86,7 @@ Deno.serve(async (req: Request) => {
 
           // 获取提问者信息
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('id, nickname, avatar_url')
             .eq('id', q.user_id)
             .maybeSingle()
@@ -185,7 +185,7 @@ Deno.serve(async (req: Request) => {
           created_at: string
         }) => {
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('id, nickname, avatar_url')
             .eq('id', a.user_id)
             .maybeSingle()

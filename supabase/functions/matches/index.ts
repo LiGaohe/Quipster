@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
 
       // 3. 查询候选用户（visibility=1，排除已操作）
       const { data: candidates, error: candErr, count } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id, nickname, avatar_url, major', { count: 'exact' })
         .eq('visibility', 1)
         .not('id', 'in', `(${excludedIds.map(id => `"${id}"`).join(',')})`)

@@ -14,6 +14,19 @@ Deno.serve(async (req: Request) => {
   const method = req.method
   const segments = getPathSegments(url, 'posts')
 
+  const debugInfo = {
+    method,
+    pathname: url.pathname,
+    segments,
+    segmentsLength: segments.length,
+    conditions: {
+      GET_segments0: method === 'GET' && segments.length === 0,
+      POST_segments0: method === 'POST' && segments.length === 0,
+      POST_2_like: method === 'POST' && segments.length === 2 && segments[1] === 'like',
+      POST_2_comment: method === 'POST' && segments.length === 2 && segments[1] === 'comment',
+    }
+  }
+
   try {
     // ── GET /posts ── 动态列表 ─────────────────────────────────────
     if (method === 'GET' && segments.length === 0) {
@@ -26,14 +39,15 @@ Deno.serve(async (req: Request) => {
 
       const supabase = createAdminClient()
 
-      // 查询 posts，关联 profiles 获取用户信息
+      // 查询 posts，关联 users 获取用户信息
       let query = supabase
         .from('posts')
         .select(
-          `id, content, images, like_count, comment_count, created_at,
-           profiles!posts_user_id_fkey(id, nickname, avatar_url)`,
+          `id, content, image_urls, visibility, audit_status, created_at,
+           users!posts_user_id_fkey(id, nickname, avatar_url)`,
           { count: 'exact' }
         )
+        .eq('type', 'post')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
 
@@ -47,31 +61,45 @@ Deno.serve(async (req: Request) => {
 
       const posts = postRows ?? []
 
-      // 为每个帖子查询当前用户是否已点赞
       const enriched = await Promise.all(
         posts.map(async (post: {
           id: string
           content: string
-          images: string[] | null
-          like_count: number
-          comment_count: number
+          image_urls: string[] | null
+          visibility: number
+          audit_status: string
           created_at: string
-          profiles: { id: string; nickname: string; avatar_url: string } | null
+          users: { id: string; nickname: string; avatar_url: string } | null
         }) => {
+          const { count: likeCount } = await supabase
+            .from('likes')
+            .select('id', { count: 'exact', head: true })
+            .eq('target_type', 'post')
+            .eq('target_id', post.id)
+
           const { data: likeRow } = await supabase
-            .from('post_likes')
+            .from('likes')
             .select('user_id')
             .eq('user_id', me)
-            .eq('post_id', post.id)
+            .eq('target_type', 'post')
+            .eq('target_id', post.id)
             .maybeSingle()
+
+          const { count: commentCount } = await supabase
+            .from('posts')
+            .select('id', { count: 'exact', head: true })
+            .eq('type', 'comment')
+            .eq('post_id', post.id)
 
           return {
             id: post.id,
-            user: post.profiles ?? null,
+            user: post.users ?? null,
             content: post.content,
-            images: post.images ?? [],
-            like_count: post.like_count,
-            comment_count: post.comment_count,
+            image_urls: post.image_urls ?? [],
+            visibility: post.visibility,
+            audit_status: post.audit_status,
+            like_count: likeCount ?? 0,
+            comment_count: commentCount ?? 0,
             is_liked: likeRow !== null,
             created_at: post.created_at,
           }
@@ -91,26 +119,26 @@ Deno.serve(async (req: Request) => {
       if (authResp) return authResp
       const me = user!.id
 
-      let body: { content?: string; images?: string[] }
+      let body: { content?: string; image_urls?: string[] }
       try {
         body = await req.json()
       } catch {
         return err('请求体不是有效 JSON', 400)
       }
 
-      const { content, images = [] } = body
+      const { content, image_urls = [] } = body
 
       if (!content || content.trim() === '') return err('content 不能为空', 400)
       if (content.trim().length > 500) return err('content 不能超过 500 字', 400)
-      if (!Array.isArray(images)) return err('images 必须是数组', 400)
-      if (images.length > 9) return err('最多上传 9 张图片', 400)
+      if (!Array.isArray(image_urls)) return err('image_urls 必须是数组', 400)
+      if (image_urls.length > 9) return err('最多上传 9 张图片', 400)
 
       const supabase = createAdminClient()
 
       const { data: newPost, error: insertErr } = await supabase
         .from('posts')
-        .insert({ user_id: me, content: content.trim(), images })
-        .select('id, user_id, content, images, like_count, comment_count, created_at')
+        .insert({ user_id: me, content: content.trim(), image_urls, type: 'post' })
+        .select('id, user_id, content, image_urls, created_at')
         .single()
 
       if (insertErr) return err(insertErr.message, 500)
@@ -127,60 +155,57 @@ Deno.serve(async (req: Request) => {
       const postId = segments[0]
       const supabase = createAdminClient()
 
-      // 检查帖子是否存在
       const { data: postRow, error: postCheckErr } = await supabase
         .from('posts')
-        .select('id, like_count')
+        .select('id')
         .eq('id', postId)
+        .eq('type', 'post')
         .maybeSingle()
 
       if (postCheckErr) return err(postCheckErr.message, 500)
       if (!postRow) return err('帖子不存在', 404)
 
-      // 检查是否已点赞
       const { data: likeRow, error: likeCheckErr } = await supabase
-        .from('post_likes')
+        .from('likes')
         .select('user_id')
         .eq('user_id', me)
-        .eq('post_id', postId)
+        .eq('target_type', 'post')
+        .eq('target_id', postId)
         .maybeSingle()
 
       if (likeCheckErr) return err(likeCheckErr.message, 500)
 
       if (likeRow) {
-        // 已点赞 → 取消点赞
         const { error: deleteErr } = await supabase
-          .from('post_likes')
+          .from('likes')
           .delete()
           .eq('user_id', me)
-          .eq('post_id', postId)
+          .eq('target_type', 'post')
+          .eq('target_id', postId)
 
         if (deleteErr) return err(deleteErr.message, 500)
 
-        // 读取最新 like_count（触发器已更新）
-        const { data: updatedPost } = await supabase
-          .from('posts')
-          .select('like_count')
-          .eq('id', postId)
-          .single()
+        const { count: likeCount } = await supabase
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .eq('target_type', 'post')
+          .eq('target_id', postId)
 
-        return ok({ success: true, is_liked: false, like_count: updatedPost?.like_count ?? 0 })
+        return ok({ success: true, is_liked: false, like_count: likeCount ?? 0 })
       } else {
-        // 未点赞 → 点赞
         const { error: insertErr } = await supabase
-          .from('post_likes')
-          .insert({ user_id: me, post_id: postId })
+          .from('likes')
+          .insert({ user_id: me, target_type: 'post', target_id: postId })
 
         if (insertErr) return err(insertErr.message, 500)
 
-        // 读取最新 like_count（触发器已更新）
-        const { data: updatedPost } = await supabase
-          .from('posts')
-          .select('like_count')
-          .eq('id', postId)
-          .single()
+        const { count: likeCount } = await supabase
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .eq('target_type', 'post')
+          .eq('target_id', postId)
 
-        return ok({ success: true, is_liked: true, like_count: updatedPost?.like_count ?? 0 })
+        return ok({ success: true, is_liked: true, like_count: likeCount ?? 0 })
       }
     }
 
@@ -205,28 +230,26 @@ Deno.serve(async (req: Request) => {
 
       const supabase = createAdminClient()
 
-      // 检查帖子是否存在
       const { data: postRow, error: postCheckErr } = await supabase
         .from('posts')
         .select('id')
         .eq('id', postId)
+        .eq('type', 'post')
         .maybeSingle()
 
       if (postCheckErr) return err(postCheckErr.message, 500)
       if (!postRow) return err('帖子不存在', 404)
 
-      // 插入评论
       const { data: newComment, error: commentErr } = await supabase
-        .from('post_comments')
-        .insert({ post_id: postId, user_id: me, content: content.trim() })
+        .from('posts')
+        .insert({ post_id: postId, user_id: me, content: content.trim(), type: 'comment' })
         .select('id, content, created_at')
         .single()
 
       if (commentErr) return err(commentErr.message, 500)
 
-      // 获取评论者信息
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id, nickname, avatar_url')
         .eq('id', me)
         .maybeSingle()
@@ -242,7 +265,7 @@ Deno.serve(async (req: Request) => {
       }, 201)
     }
 
-    return err('Not Found', 404)
+    return err(`Not Found: ${JSON.stringify(debugInfo)}`, 404)
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     return err(message, 500)

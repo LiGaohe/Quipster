@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
 
       // 查询信用分
       const { data: profile, error: profileErr } = await supabase
-        .from('profiles')
+        .from('users')
         .select('credit_score')
         .eq('id', me)
         .maybeSingle()

@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
 
           // 获取对方用户信息
           const { data: peerProfile } = await supabase
-            .from('profiles')
+            .from('users')
             .select('id, nickname, avatar_url')
             .eq('id', peerId)
             .maybeSingle()

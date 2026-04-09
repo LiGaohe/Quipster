@@ -14,19 +14,22 @@ import CreatePostDialog from '@/components/posts/CreatePostDialog'
 
 const FeedPage: React.FC = () => {
   const dispatch = useAppDispatch()
-  const { items, loading, hasMore, page } = useAppSelector((state) => state.posts)
+  const { items, loading, hasMore, page, error } = useAppSelector((state) => state.posts)
 
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  // sentinel ref for IntersectionObserver
   const sentinelRef = useRef<HTMLDivElement | null>(null)
-  // track whether initial load has been triggered
   const initializedRef = useRef(false)
 
   const loadMore = useCallback(() => {
     if (loading || !hasMore) return
     dispatch(fetchPosts({ page, limit: 10 }))
   }, [dispatch, loading, hasMore, page])
+
+  const handleRetry = useCallback(() => {
+    dispatch(resetPosts())
+    dispatch(fetchPosts({ page: 1, limit: 10, replace: true }))
+  }, [dispatch])
 
   // Initial load
   useEffect(() => {
@@ -77,8 +80,20 @@ const FeedPage: React.FC = () => {
         </Button>
       </Box>
 
+      {/* Error state */}
+      {error && (
+        <Box textAlign="center" py={4}>
+          <Typography variant="body1" color="error" gutterBottom>
+            {error}
+          </Typography>
+          <Button variant="outlined" onClick={handleRetry} size="small">
+            重试
+          </Button>
+        </Box>
+      )}
+
       {/* Posts list */}
-      {items.length === 0 && !loading && (
+      {items.length === 0 && !loading && !error && (
         <Box textAlign="center" py={8}>
           <Typography variant="body1" color="text.secondary">
             暂无动态，快来发布第一条吧！

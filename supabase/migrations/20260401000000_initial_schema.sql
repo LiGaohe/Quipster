@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ============================================================
 -- 1. 用户资料表 (基于 auth.users 扩展)
 -- ============================================================
-CREATE TABLE public.profiles (
+CREATE TABLE public.users (
   id          UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email       TEXT        UNIQUE NOT NULL,
   nickname    TEXT        NOT NULL CHECK (LENGTH(nickname) >= 2 AND LENGTH(nickname) <= 20),
@@ -26,12 +26,12 @@ CREATE TABLE public.profiles (
 );
 
 -- 唯一昵称索引
-CREATE UNIQUE INDEX idx_profiles_nickname ON public.profiles (LOWER(nickname));
-CREATE INDEX idx_profiles_major ON public.profiles (major);
-CREATE INDEX idx_profiles_grade ON public.profiles (grade);
+CREATE UNIQUE INDEX idx_users_nickname ON public.users (LOWER(nickname));
+CREATE INDEX idx_users_major ON public.users (major);
+CREATE INDEX idx_users_grade ON public.users (grade);
 
-COMMENT ON TABLE public.profiles IS '用户资料，扩展 auth.users';
-COMMENT ON COLUMN public.profiles.visibility IS '0=仅好友可见 1=所有人可见';
+COMMENT ON TABLE public.users IS '用户资料，扩展 auth.users';
+COMMENT ON COLUMN public.users.visibility IS '0=仅好友可见 1=所有人可见';
 
 -- ============================================================
 -- 2. 兴趣标签表
@@ -49,7 +49,7 @@ CREATE INDEX idx_tags_category ON public.tags (category);
 -- 3. 用户兴趣标签关联表
 -- ============================================================
 CREATE TABLE public.user_tags (
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   tag_id     INTEGER     NOT NULL REFERENCES public.tags(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   PRIMARY KEY (user_id, tag_id)
@@ -63,8 +63,8 @@ CREATE INDEX idx_user_tags_tag  ON public.user_tags (tag_id);
 -- ============================================================
 CREATE TABLE public.matches (
   id             UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id        UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  target_user_id UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id        UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  target_user_id UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   action         TEXT        NOT NULL CHECK (action IN ('like', 'dislike')),
   is_matched     BOOLEAN     DEFAULT FALSE NOT NULL,
   created_at     TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -81,8 +81,8 @@ CREATE INDEX idx_matches_action    ON public.matches (user_id, action);
 -- ============================================================
 CREATE TABLE public.conversations (
   id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user1_id   UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  user2_id   UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user1_id   UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  user2_id   UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   UNIQUE (user1_id, user2_id),
   CHECK (user1_id < user2_id)  -- 确保唯一性，小 UUID 在前
@@ -97,8 +97,8 @@ CREATE INDEX idx_conversations_user2 ON public.conversations (user2_id);
 CREATE TABLE public.messages (
   id              UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
   conversation_id UUID        NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
-  sender_id       UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  receiver_id     UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  sender_id       UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  receiver_id     UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content         TEXT        NOT NULL CHECK (LENGTH(content) > 0),
   message_type    TEXT        DEFAULT 'text' NOT NULL CHECK (message_type IN ('text', 'image')),
   is_read         BOOLEAN     DEFAULT FALSE NOT NULL,
@@ -115,7 +115,7 @@ CREATE INDEX idx_messages_unread       ON public.messages (receiver_id, is_read)
 -- ============================================================
 CREATE TABLE public.posts (
   id            UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id       UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id       UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content       TEXT        NOT NULL CHECK (LENGTH(content) > 0 AND LENGTH(content) <= 500),
   images        TEXT[]      DEFAULT '{}' NOT NULL,
   like_count    INTEGER     DEFAULT 0 NOT NULL CHECK (like_count >= 0),
@@ -131,7 +131,7 @@ CREATE INDEX idx_posts_created    ON public.posts (created_at DESC);
 -- 8. 动态点赞表
 -- ============================================================
 CREATE TABLE public.post_likes (
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   post_id    UUID        NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   PRIMARY KEY (user_id, post_id)
@@ -145,7 +145,7 @@ CREATE INDEX idx_post_likes_post ON public.post_likes (post_id);
 CREATE TABLE public.post_comments (
   id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
   post_id    UUID        NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content    TEXT        NOT NULL CHECK (LENGTH(content) > 0),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -160,7 +160,7 @@ CREATE TABLE public.groups (
   name         TEXT        NOT NULL CHECK (LENGTH(name) >= 2),
   description  TEXT,
   cover_url    TEXT,
-  creator_id   UUID        REFERENCES public.profiles(id) ON DELETE SET NULL,
+  creator_id   UUID        REFERENCES public.users(id) ON DELETE SET NULL,
   member_count INTEGER     DEFAULT 1 NOT NULL CHECK (member_count >= 0),
   created_at   TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at   TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -174,7 +174,7 @@ CREATE INDEX idx_groups_created ON public.groups (created_at DESC);
 -- ============================================================
 CREATE TABLE public.group_members (
   group_id   UUID        NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   role       TEXT        DEFAULT 'member' NOT NULL CHECK (role IN ('creator', 'admin', 'member')),
   joined_at  TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   PRIMARY KEY (group_id, user_id)
@@ -200,7 +200,7 @@ CREATE TABLE public.events (
   title                TEXT        NOT NULL CHECK (LENGTH(title) >= 2),
   description          TEXT,
   cover_url            TEXT,
-  organizer_id         UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  organizer_id         UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   start_time           TIMESTAMPTZ NOT NULL,
   end_time             TIMESTAMPTZ,
   location             TEXT,
@@ -219,7 +219,7 @@ CREATE INDEX idx_events_start_time  ON public.events (start_time ASC);
 -- ============================================================
 CREATE TABLE public.event_signups (
   event_id     UUID        NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
-  user_id      UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id      UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   signed_up_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   PRIMARY KEY (event_id, user_id)
 );
@@ -231,7 +231,7 @@ CREATE INDEX idx_event_signups_user ON public.event_signups (user_id);
 -- ============================================================
 CREATE TABLE public.anonymous_posts (
   id            UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id       UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id       UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   title         TEXT        NOT NULL CHECK (LENGTH(title) >= 2),
   content       TEXT        NOT NULL CHECK (LENGTH(content) > 0),
   like_count    INTEGER     DEFAULT 0 NOT NULL CHECK (like_count >= 0),
@@ -259,7 +259,7 @@ CREATE INDEX idx_anon_post_tags_tag ON public.anonymous_post_tags (tag_id);
 -- 17. 匿名帖子点赞表
 -- ============================================================
 CREATE TABLE public.anonymous_post_likes (
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   post_id    UUID        NOT NULL REFERENCES public.anonymous_posts(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   PRIMARY KEY (user_id, post_id)
@@ -271,7 +271,7 @@ CREATE TABLE public.anonymous_post_likes (
 CREATE TABLE public.anonymous_comments (
   id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
   post_id    UUID        NOT NULL REFERENCES public.anonymous_posts(id) ON DELETE CASCADE,
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content    TEXT        NOT NULL CHECK (LENGTH(content) > 0),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -283,7 +283,7 @@ CREATE INDEX idx_anon_comments_post ON public.anonymous_comments (post_id, creat
 -- ============================================================
 CREATE TABLE public.questions (
   id                 UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id            UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id            UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   title              TEXT        NOT NULL CHECK (LENGTH(title) >= 5),
   content            TEXT        NOT NULL CHECK (LENGTH(content) > 0),
   status             TEXT        DEFAULT 'open' NOT NULL CHECK (status IN ('open', 'closed')),
@@ -315,7 +315,7 @@ CREATE INDEX idx_question_tags_tag ON public.question_tags (tag_id);
 CREATE TABLE public.answers (
   id          UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
   question_id UUID        NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
-  user_id     UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id     UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   content     TEXT        NOT NULL CHECK (LENGTH(content) > 0),
   is_accepted BOOLEAN     DEFAULT FALSE NOT NULL,
   like_count  INTEGER     DEFAULT 0 NOT NULL CHECK (like_count >= 0),
@@ -332,7 +332,7 @@ CREATE INDEX idx_answers_accepted ON public.answers (question_id) WHERE is_accep
 -- ============================================================
 CREATE TABLE public.study_tasks (
   id            UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  creator_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  creator_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   title         TEXT        NOT NULL CHECK (LENGTH(title) >= 2),
   description   TEXT,
   target_count  INTEGER     NOT NULL CHECK (target_count >= 2),
@@ -360,7 +360,7 @@ CREATE TABLE public.study_task_tags (
 -- ============================================================
 CREATE TABLE public.study_task_members (
   task_id    UUID        NOT NULL REFERENCES public.study_tasks(id) ON DELETE CASCADE,
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   status     TEXT        DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
   applied_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   PRIMARY KEY (task_id, user_id)
@@ -374,7 +374,7 @@ CREATE INDEX idx_study_task_members_user ON public.study_task_members (user_id);
 -- ============================================================
 CREATE TABLE public.reports (
   id          UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  reporter_id UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  reporter_id UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   target_type TEXT        NOT NULL CHECK (target_type IN ('user', 'post', 'comment', 'message')),
   target_id   UUID        NOT NULL,
   reason      TEXT        NOT NULL CHECK (LENGTH(reason) > 0),
@@ -393,7 +393,7 @@ CREATE INDEX idx_reports_target   ON public.reports (target_type, target_id);
 -- ============================================================
 CREATE TABLE public.credit_records (
   id         UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id    UUID        NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   type       TEXT        NOT NULL CHECK (type IN ('increase', 'decrease')),
   amount     INTEGER     NOT NULL CHECK (amount > 0),
   reason     TEXT        NOT NULL CHECK (LENGTH(reason) > 0),
@@ -413,8 +413,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_profiles_updated_at
-  BEFORE UPDATE ON public.profiles
+CREATE TRIGGER trigger_users_updated_at
+  BEFORE UPDATE ON public.users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TRIGGER trigger_posts_updated_at
@@ -451,7 +451,7 @@ CREATE TRIGGER trigger_study_tasks_updated_at
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, nickname)
+  INSERT INTO public.users (id, email, nickname)
   VALUES (
     NEW.id,
     NEW.email,
@@ -625,7 +625,7 @@ CREATE TRIGGER trigger_study_task_member_count
 -- ============================================================
 -- RLS（行级安全）策略
 -- ============================================================
-ALTER TABLE public.profiles           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tags               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_tags          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches            ENABLE ROW LEVEL SECURITY;
@@ -654,12 +654,12 @@ ALTER TABLE public.credit_records     ENABLE ROW LEVEL SECURITY;
 
 -- Edge Functions 使用 service_role 绕过 RLS，以下策略用于直接查询场景
 
--- profiles: 登录用户可查看所有 visibility=1 的资料，自己的全部可见
-CREATE POLICY "profiles_select" ON public.profiles FOR SELECT
+-- users: 登录用户可查看所有 visibility=1 的资料，自己的全部可见
+CREATE POLICY "users_select" ON public.users FOR SELECT
   TO authenticated
   USING (visibility = 1 OR id = auth.uid());
 
-CREATE POLICY "profiles_update_own" ON public.profiles FOR UPDATE
+CREATE POLICY "users_update_own" ON public.users FOR UPDATE
   TO authenticated
   USING (id = auth.uid());
 

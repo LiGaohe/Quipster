@@ -50,7 +50,7 @@ async function handleGetUser(req: Request, userId: string): Promise<Response> {
 
   const admin = createAdminClient()
   const { data: profile, error } = await admin
-    .from('profiles')
+    .from('users')
     .select('id, email, nickname, avatar_url, gender, major, grade, bio, credit_score, visibility, created_at')
     .eq('id', userId)
     .maybeSingle()
@@ -106,7 +106,7 @@ async function handleUpdateUser(req: Request, userId: string): Promise<Response>
   // 检查昵称唯一性（排除当前用户）
   if (body.nickname !== undefined) {
     const { data: existingProfile, error: checkError } = await admin
-      .from('profiles')
+      .from('users')
       .select('id')
       .eq('nickname', body.nickname)
       .neq('id', userId)
@@ -130,7 +130,7 @@ async function handleUpdateUser(req: Request, userId: string): Promise<Response>
   }
 
   const { data: updated, error: updateError } = await admin
-    .from('profiles')
+    .from('users')
     .update(updatePayload)
     .eq('id', userId)
     .select('id, email, nickname, avatar_url, gender, major, grade, bio, credit_score, visibility, created_at, updated_at')
@@ -161,7 +161,7 @@ async function handleSearch(req: Request, url: URL): Promise<Response> {
   const admin = createAdminClient()
 
   let query = admin
-    .from('profiles')
+    .from('users')
     .select('id, nickname, avatar_url, major, grade', { count: 'exact' })
     .eq('visibility', 1)
 

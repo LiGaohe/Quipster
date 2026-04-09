@@ -8,6 +8,7 @@ interface PostsState {
   error: string | null
   page: number
   hasMore: boolean
+  totalPages: number
 }
 
 const initialState: PostsState = {
@@ -16,6 +17,7 @@ const initialState: PostsState = {
   error: null,
   page: 1,
   hasMore: true,
+  totalPages: 1,
 }
 
 export const fetchPosts = createAsyncThunk(
@@ -74,6 +76,8 @@ const postsSlice = createSlice({
       state.items = []
       state.page = 1
       state.hasMore = true
+      state.totalPages = 1
+      state.error = null
     },
   },
   extraReducers: (builder) => {
@@ -86,15 +90,22 @@ const postsSlice = createSlice({
       const { data, pagination, replace } = action.payload
       if (replace) {
         state.items = data ?? []
+        state.page = 1
       } else {
         state.items = [...state.items, ...(data ?? [])]
       }
-      state.hasMore = pagination ? state.page < pagination.pages : false
+      if (pagination) {
+        state.totalPages = pagination.pages
+        state.hasMore = state.page < pagination.pages
+      } else {
+        state.hasMore = false
+      }
       state.page += 1
     })
     builder.addCase(fetchPosts.rejected, (state, action) => {
       state.loading = false
       state.error = action.payload as string
+      state.hasMore = false
     })
 
     builder.addCase(createPost.fulfilled, (state, action) => {

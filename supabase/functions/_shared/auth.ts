@@ -57,11 +57,12 @@ export async function requireAuth(
 
 /**
  * 解析 URL 中函数名之后的路径片段
- * 例如 /functions/v1/posts/UUID/like → ['UUID', 'like']
+ * Supabase Edge Functions 中 url.pathname 已经是相对路径，如 /posts 或 /posts/uuid/like
+ * 例如 /posts/UUID/like → ['UUID', 'like']
  */
 export function getPathSegments(url: URL, functionName: string): string[] {
-  const prefix = `/functions/v1/${functionName}`
   const pathname = url.pathname
+  const prefix = `/${functionName}`
   const rest = pathname.startsWith(prefix) ? pathname.slice(prefix.length) : pathname
   return rest.split('/').filter(Boolean)
 }
