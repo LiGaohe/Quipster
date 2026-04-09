@@ -81,7 +81,7 @@ async function handleRegister(req: Request): Promise<Response> {
 
   // 检查昵称是否已存在
   const { data: existingProfile, error: checkError } = await admin
-    .from('profiles')
+    .from('users')
     .select('id')
     .eq('nickname', trimmedNickname)
     .maybeSingle()
@@ -97,7 +97,7 @@ async function handleRegister(req: Request): Promise<Response> {
   const { data: createData, error: createError } = await admin.auth.admin.createUser({
     email: emailLower,
     password,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: { nickname: trimmedNickname },
   })
 
@@ -111,15 +111,25 @@ async function handleRegister(req: Request): Promise<Response> {
 
   const newUser = createData.user
 
-  // 确保 profiles 记录存在（触发器可能有延迟，手动兜底）
+  // 发送验证邮件
+  const { error: linkError } = await admin.auth.admin.generateLink({
+    type: 'signup',
+    email: emailLower,
+  })
+
+  if (linkError) {
+    console.error('Failed to send confirmation email:', linkError)
+  }
+
+  // 确保 users 记录存在（触发器可能有延迟，手动兜底）
   const { data: existsProfile } = await admin
-    .from('profiles')
+    .from('users')
     .select('id')
     .eq('id', newUser.id)
     .maybeSingle()
 
   if (!existsProfile) {
-    await admin.from('profiles').insert({
+    await admin.from('users').insert({
       id: newUser.id,
       email: emailLower,
       nickname: trimmedNickname,
@@ -160,15 +170,18 @@ async function handleLogin(req: Request): Promise<Response> {
   })
 
   if (signInError || !signInData.session || !signInData.user) {
+    if (signInError?.code === 'email_not_confirmed') {
+      return err('邮箱未验证，请查收验证邮件', 401)
+    }
     return err('邮箱或密码错误', 401)
   }
 
   const { session, user } = signInData
 
-  // 查询 profiles 获取用户详细信息
+  // 查询 users 获取用户详细信息
   const admin = createAdminClient()
   const { data: profile } = await admin
-    .from('profiles')
+    .from('users')
     .select('id, email, nickname, avatar_url, credit_score')
     .eq('id', user.id)
     .maybeSingle()
