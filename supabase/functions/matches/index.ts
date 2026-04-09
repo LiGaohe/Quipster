@@ -6,35 +6,36 @@ import { requireAuth, getPathSegments } from '../_shared/auth.ts'
 
 // @ts-ignore Deno
 Deno.serve(async (req: Request) => {
-  // CORS 预检处理
   const corsResp = handleCors(req)
   if (corsResp) return corsResp
 
   const url = new URL(req.url)
   const method = req.method
+  const segments = getPathSegments(url, 'matches')
 
   try {
-    // ── GET /matches ── 推荐用户列表 ───────────────────────────────
-    if (method === 'GET') {
+    if (method === 'GET' && segments.length === 0) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
       const me = user!.id
 
       const { page, limit, offset } = parsePagination(url)
-
       const supabase = createAdminClient()
 
-      // 1. 获取当前用户的所有标签
-      const { data: myTagRows, error: myTagErr } = await supabase
+      // 1. 获取我的标签
+      const { data: myTags, error: myTagErr } = await supabase
         .from('user_tags')
-        .select('tag_id')
+        .select('tag_id, tags(name)')
         .eq('user_id', me)
 
       if (myTagErr) return err(myTagErr.message, 500)
 
-      const myTagIds: number[] = (myTagRows ?? []).map((r: { tag_id: number }) => r.tag_id)
+      const myTagIds = (myTags ?? []).map((row: { tag_id: number }) => row.tag_id)
+      const myTagNames = (myTags ?? [])
+        .map((row: { tags: { name: string } | null }) => row.tags?.name)
+        .filter(Boolean) as string[]
 
-      // 2. 获取已经操作过的目标用户 id
+      // 2. 查询我已经操作过的用户（使用 matches 表）
       const { data: actionedRows, error: actionedErr } = await supabase
         .from('matches')
         .select('target_user_id')
@@ -44,46 +45,53 @@ Deno.serve(async (req: Request) => {
 
       const excludedIds: string[] = [me, ...(actionedRows ?? []).map((r: { target_user_id: string }) => r.target_user_id)]
 
-      // 3. 查询候选用户（visibility=1，排除已操作）
+      // 3. 查询候选用户（visibility=1 或 NULL，排除已操作）
       const { data: candidates, error: candErr, count } = await supabase
         .from('users')
         .select('id, nickname, avatar_url, major', { count: 'exact' })
-        .eq('visibility', 1)
+        .or('visibility.eq.1,visibility.is.null')
         .not('id', 'in', `(${excludedIds.map(id => `"${id}"`).join(',')})`)
         .range(offset, offset + limit - 1)
 
-      if (candErr) return err(candErr.message, 500)
+      if (candErr) {
+        if (candErr.code === 'PGRST103') {
+          return ok({
+            success: true,
+            data: [],
+            pagination: buildPagination(page, limit, 0),
+          })
+        }
+        return err(candErr.message, 500)
+      }
 
       const candidateList = candidates ?? []
+
+      if (candidateList.length === 0) {
+        return ok({
+          success: true,
+          data: [],
+          pagination: buildPagination(page, limit, count ?? 0),
+        })
+      }
 
       // 4. 对每个候选用户计算共同标签和匹配分数
       const enriched = await Promise.all(
         candidateList.map(async (candidate: { id: string; nickname: string; avatar_url: string; major: string }) => {
-          // 获取候选用户标签
           const { data: candTagRows } = await supabase
             .from('user_tags')
-            .select('tag_id')
+            .select('tag_id, tags(name)')
             .eq('user_id', candidate.id)
 
-          const candTagIds: number[] = (candTagRows ?? []).map((r: { tag_id: number }) => r.tag_id)
+          const candTagIds = (candTagRows ?? []).map((r: { tag_id: number }) => r.tag_id)
+          const candTagNames = (candTagRows ?? [])
+            .map((r: { tags: { name: string } | null }) => r.tags?.name)
+            .filter(Boolean) as string[]
 
-          // 计算共同标签 id
-          const commonTagIds = myTagIds.filter(tid => candTagIds.includes(tid))
+          const commonTagNames = myTagNames.filter(name => candTagNames.includes(name))
 
-          // 获取共同标签名
-          let commonTagNames: string[] = []
-          if (commonTagIds.length > 0) {
-            const { data: tagNameRows } = await supabase
-              .from('tags')
-              .select('name')
-              .in('id', commonTagIds)
-            commonTagNames = (tagNameRows ?? []).map((r: { name: string }) => r.name)
-          }
-
-          // 计算匹配分数
           const denominator = Math.max(myTagIds.length, candTagIds.length)
           const match_score = denominator > 0
-            ? Math.round((commonTagIds.length / denominator) * 100)
+            ? Math.round((commonTagNames.length / denominator) * 100)
             : 0
 
           return {
@@ -97,7 +105,6 @@ Deno.serve(async (req: Request) => {
         })
       )
 
-      // 5. 按 match_score 降序排列
       enriched.sort((a, b) => b.match_score - a.match_score)
 
       return ok({
@@ -107,8 +114,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // ── POST /matches ── 记录 like/dislike 操作 ────────────────────
-    if (method === 'POST') {
+    if (method === 'POST' && segments.length === 0) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
       const me = user!.id
@@ -123,12 +129,14 @@ Deno.serve(async (req: Request) => {
       const { target_user_id, action } = body
 
       if (!target_user_id) return err('target_user_id 不能为空', 400)
-      if (action !== 'like' && action !== 'dislike') return err('action 必须为 like 或 dislike', 400)
+      if (action !== 'like' && action !== 'dislike') {
+        return err('action 必须为 like 或 dislike', 400)
+      }
       if (target_user_id === me) return err('不能对自己操作', 400)
 
       const supabase = createAdminClient()
 
-      // 1. UPSERT matches 记录
+      // 使用 matches 表记录操作
       const { error: upsertErr } = await supabase
         .from('matches')
         .upsert(
@@ -138,7 +146,8 @@ Deno.serve(async (req: Request) => {
 
       if (upsertErr) return err(upsertErr.message, 500)
 
-      // 2. 仅当 action='like' 时检查是否互相喜欢
+      // 检查是否互相喜欢
+      let isMatched = false
       if (action === 'like') {
         const { data: reverseMatch, error: reverseErr } = await supabase
           .from('matches')
@@ -148,47 +157,20 @@ Deno.serve(async (req: Request) => {
           .eq('action', 'like')
           .maybeSingle()
 
-        if (reverseErr) return err(reverseErr.message, 500)
-
-        if (reverseMatch) {
-          // 互相喜欢 —— 更新两条记录 is_matched=true
-          const { error: updateErr1 } = await supabase
+        if (!reverseErr && reverseMatch) {
+          isMatched = true
+          await supabase
             .from('matches')
-            .update({ is_matched: true })
+            .update({ is_matched: true, matched_at: new Date().toISOString() })
             .eq('user_id', me)
             .eq('target_user_id', target_user_id)
-
-          if (updateErr1) return err(updateErr1.message, 500)
-
-          const { error: updateErr2 } = await supabase
-            .from('matches')
-            .update({ is_matched: true })
-            .eq('user_id', target_user_id)
-            .eq('target_user_id', me)
-
-          if (updateErr2) return err(updateErr2.message, 500)
-
-          // 自动创建 conversation（user1_id < user2_id）
-          const user1_id = me < target_user_id ? me : target_user_id
-          const user2_id = me < target_user_id ? target_user_id : me
-
-          const { error: convErr } = await supabase
-            .from('conversations')
-            .upsert(
-              { user1_id, user2_id },
-              { onConflict: 'user1_id,user2_id', ignoreDuplicates: true }
-            )
-
-          if (convErr) return err(convErr.message, 500)
-
-          return ok({ success: true, is_matched: true, message: '匹配成功！' })
         }
       }
 
-      return ok({ success: true, is_matched: false, message: '操作成功' })
+      return ok({ success: true, is_matched: isMatched })
     }
 
-    return err('Method Not Allowed', 405)
+    return err('Not Found', 404)
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     return err(message, 500)

@@ -21,17 +21,14 @@ Deno.serve(async (req: Request) => {
   const segments = getPathSegments(url, 'events')
 
   try {
-    // ── GET /events ──────────────────────────────────────────
     if (req.method === 'GET' && segments.length === 0) {
       return await listEvents(req, url)
     }
 
-    // ── POST /events ─────────────────────────────────────────
     if (req.method === 'POST' && segments.length === 0) {
       return await createEvent(req)
     }
 
-    // ── POST /events/:id/signup ──────────────────────────────
     if (req.method === 'POST' && segments.length === 2 && segments[1] === 'signup') {
       return await signupEvent(req, segments[0])
     }
@@ -43,7 +40,6 @@ Deno.serve(async (req: Request) => {
   }
 })
 
-// ── 列表 ─────────────────────────────────────────────────────
 async function listEvents(req: Request, url: URL): Promise<Response> {
   const [user, authErr] = await requireAuth(req)
   if (authErr) return authErr
@@ -56,19 +52,16 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
 
   const now = new Date().toISOString()
 
-  // 先获取活动（带 organizer）并计数
-  // 使用 RPC 或者分步查询。这里用分步：先按条件查 events，再关联 users。
   let query = db
-    .from('events')
+    .from('activities')
     .select(
-      `id, title, description, cover_url, organizer_id,
-       start_time, end_time, location, max_participants, current_participants, created_at`,
+      `id, title, description, image_url, creator_user_id,
+       start_time, end_time, location, max_participants, created_at`,
       { count: 'exact' }
     )
     .order('start_time', { ascending: true })
     .range(offset, offset + limit - 1)
 
-  // status 过滤
   if (status === 'upcoming') {
     query = query.gt('start_time', now)
   } else if (status === 'on_going') {
@@ -77,7 +70,6 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
     query = query.lt('end_time', now)
   }
 
-  // keyword 过滤
   if (keyword) {
     query = query.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%`)
   }
@@ -94,42 +86,48 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
     return ok({ data: [], pagination: buildPagination(page, limit, count ?? 0) })
   }
 
-  // 批量获取 organizer 信息
-  const organizerIds: string[] = [...new Set(eventList.map((e: any) => e.organizer_id))]
+  const creatorIds: string[] = [...new Set(eventList.map((e: any) => e.creator_user_id))]
   const { data: users } = await db
     .from('users')
     .select('id, nickname, avatar_url')
-    .in('id', organizerIds)
+    .in('id', creatorIds)
 
   const profileMap = new Map<string, any>()
   for (const p of users ?? []) profileMap.set(p.id, p)
 
-  // 批量查询当前用户报名情况
   const eventIds: string[] = eventList.map((e: any) => e.id)
-  const { data: signups } = await db
-    .from('event_signups')
-    .select('event_id')
-    .eq('user_id', user!.id)
-    .in('event_id', eventIds)
 
+  const { data: participants } = await db
+    .from('activity_participants')
+    .select('activity_id, user_id')
+
+  const participantCountMap = new Map<string, number>()
   const signedSet = new Set<string>()
-  for (const s of signups ?? []) signedSet.add(s.event_id)
+  for (const p of participants ?? []) {
+    if (!participantCountMap.has(p.activity_id)) {
+      participantCountMap.set(p.activity_id, 0)
+    }
+    participantCountMap.set(p.activity_id, participantCountMap.get(p.activity_id)! + 1)
+    if (p.user_id === user!.id) {
+      signedSet.add(p.activity_id)
+    }
+  }
 
   const list = eventList.map((e: any) => {
-    const organizer = profileMap.get(e.organizer_id)
+    const creator = profileMap.get(e.creator_user_id)
     return {
       id: e.id,
       title: e.title,
       description: e.description,
-      cover_url: e.cover_url,
-      organizer: organizer
-        ? { id: organizer.id, nickname: organizer.nickname, avatar_url: organizer.avatar_url }
-        : { id: e.organizer_id, nickname: null, avatar_url: null },
+      image_url: e.image_url,
+      organizer: creator
+        ? { id: creator.id, nickname: creator.nickname, avatar_url: creator.avatar_url }
+        : { id: e.creator_user_id, nickname: null, avatar_url: null },
       start_time: e.start_time,
       end_time: e.end_time,
       location: e.location,
       max_participants: e.max_participants,
-      current_participants: e.current_participants,
+      current_participants: participantCountMap.get(e.id) ?? 0,
       is_signed_up: signedSet.has(e.id),
     }
   })
@@ -137,7 +135,6 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
   return ok({ data: list, pagination: buildPagination(page, limit, count ?? 0) })
 }
 
-// ── 创建 ─────────────────────────────────────────────────────
 async function createEvent(req: Request): Promise<Response> {
   const [user, authErr] = await requireAuth(req)
   if (authErr) return authErr
@@ -149,7 +146,7 @@ async function createEvent(req: Request): Promise<Response> {
     return err('请求体解析失败，请提供合法的 JSON')
   }
 
-  const { title, description, cover_url, start_time, end_time, location, max_participants } =
+  const { title, description, image_url, start_time, end_time, location, max_participants } =
     body ?? {}
 
   if (!title || typeof title !== 'string' || !title.trim()) {
@@ -178,12 +175,12 @@ async function createEvent(req: Request): Promise<Response> {
   const db = createAdminClient()
 
   const { data: event, error: insertErr } = await db
-    .from('events')
+    .from('activities')
     .insert({
       title: title.trim(),
       description: description ?? null,
-      cover_url: cover_url ?? null,
-      organizer_id: user!.id,
+      image_url: image_url ?? null,
+      creator_user_id: user!.id,
       start_time: parsedStart.toISOString(),
       end_time: end_time ? new Date(end_time).toISOString() : null,
       location: location ?? null,
@@ -200,7 +197,6 @@ async function createEvent(req: Request): Promise<Response> {
   return ok({ success: true, message: '活动创建成功', data: { id: event.id } }, 201)
 }
 
-// ── 报名 ─────────────────────────────────────────────────────
 async function signupEvent(req: Request, eventId: string): Promise<Response> {
   const [user, authErr] = await requireAuth(req)
   if (authErr) return authErr
@@ -209,10 +205,9 @@ async function signupEvent(req: Request, eventId: string): Promise<Response> {
 
   const db = createAdminClient()
 
-  // 检查活动是否存在
   const { data: event, error: findErr } = await db
-    .from('events')
-    .select('id, max_participants, current_participants')
+    .from('activities')
+    .select('id, max_participants')
     .eq('id', eventId)
     .maybeSingle()
 
@@ -222,28 +217,31 @@ async function signupEvent(req: Request, eventId: string): Promise<Response> {
   }
   if (!event) return err('活动不存在', 404)
 
-  // 检查是否满员
+  const { count: currentCount } = await db
+    .from('activity_participants')
+    .select('id', { count: 'exact', head: true })
+    .eq('activity_id', eventId)
+
   if (
     event.max_participants !== null &&
-    event.current_participants >= event.max_participants
+    (currentCount ?? 0) >= event.max_participants
   ) {
     return err('活动名额已满', 400)
   }
 
-  // 检查是否已报名
   const { data: existing } = await db
-    .from('event_signups')
-    .select('event_id')
-    .eq('event_id', eventId)
+    .from('activity_participants')
+    .select('activity_id')
+    .eq('activity_id', eventId)
     .eq('user_id', user!.id)
     .maybeSingle()
 
   if (existing) return err('已报名该活动', 400)
 
-  // 插入报名记录（current_participants 由触发器自动更新）
-  const { error: signupErr } = await db.from('event_signups').insert({
-    event_id: eventId,
+  const { error: signupErr } = await db.from('activity_participants').insert({
+    activity_id: eventId,
     user_id: user!.id,
+    status: 'registered',
   })
 
   if (signupErr) {

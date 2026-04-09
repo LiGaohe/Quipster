@@ -6,7 +6,6 @@ import { requireAuth, getPathSegments } from '../_shared/auth.ts'
 
 // @ts-ignore Deno
 Deno.serve(async (req: Request) => {
-  // CORS 预检处理
   const corsResp = handleCors(req)
   if (corsResp) return corsResp
 
@@ -14,42 +13,25 @@ Deno.serve(async (req: Request) => {
   const method = req.method
   const segments = getPathSegments(url, 'questions')
 
-  // segments[0] = questionId, segments[1] = 'answers'
   const hasId = segments.length >= 1 && segments[0] !== ''
   const isAnswersRoute = hasId && segments[1] === 'answers'
 
   try {
-    // ── GET /questions ── 问题列表 ──────────────────────────────────
     if (method === 'GET' && !hasId) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
 
       const { page, limit, offset } = parsePagination(url)
-      const tagId = url.searchParams.get('tag_id')
-      const statusFilter = url.searchParams.get('status')
       const sort = url.searchParams.get('sort') ?? 'latest'
 
       const supabase = createAdminClient()
 
       let query = supabase
         .from('questions')
-        .select(
-          tagId
-            ? '*, question_tags!inner(tag_id)'
-            : '*',
-          { count: 'exact' }
-        )
-
-      if (tagId) {
-        query = query.eq('question_tags.tag_id', parseInt(tagId, 10))
-      }
-
-      if (statusFilter === 'open' || statusFilter === 'closed') {
-        query = query.eq('status', statusFilter)
-      }
+        .select('*', { count: 'exact' })
 
       if (sort === 'hotests') {
-        query = query.order('answer_count', { ascending: false })
+        query = query.order('created_at', { ascending: false })
       } else {
         query = query.order('created_at', { ascending: false })
       }
@@ -62,43 +44,53 @@ Deno.serve(async (req: Request) => {
 
       const questionList = questions ?? []
 
-      // 为每个问题获取 tags 和用户信息
       const enriched = await Promise.all(
         questionList.map(async (q: {
           id: string
           user_id: string
           title: string
           content: string
-          status: string
-          answer_count: number
-          has_accepted_answer: boolean
+          category: string | null
+          is_solved: boolean
+          has_ai_answer: boolean
           created_at: string
         }) => {
-          // 获取问题的标签
-          const { data: tagRows } = await supabase
-            .from('question_tags')
-            .select('tags(id, name)')
+          const { count: answerCount } = await supabase
+            .from('answers')
+            .select('id', { count: 'exact', head: true })
             .eq('question_id', q.id)
 
-          const tags = (tagRows ?? []).map((row: { tags: { id: number; name: string } | null }) =>
-            row.tags ? { id: row.tags.id, name: row.tags.name } : null
-          ).filter(Boolean)
+          const { data: acceptedAnswer } = await supabase
+            .from('answers')
+            .select('id')
+            .eq('question_id', q.id)
+            .eq('is_accepted', true)
+            .maybeSingle()
 
-          // 获取提问者信息
           const { data: profile } = await supabase
             .from('users')
             .select('id, nickname, avatar_url')
             .eq('id', q.user_id)
             .maybeSingle()
 
+          const { data: tagRows } = await supabase
+            .from('question_tags')
+            .select('tags(id, name)')
+            .eq('question_id', q.id)
+
+          const tags = tagRows
+            ?.map((row: { tags: { id: number; name: string } | null }) => row.tags)
+            .filter((t): t is { id: number; name: string } => t !== null) ?? []
+
           return {
             id: q.id,
             title: q.title,
             content: q.content,
-            status: q.status,
             tags,
-            answer_count: q.answer_count,
-            has_accepted_answer: q.has_accepted_answer,
+            category: q.category,
+            status: q.is_solved ? 'closed' : 'open',
+            answer_count: answerCount ?? 0,
+            has_accepted_answer: !!acceptedAnswer,
             user: profile ?? { id: q.user_id, nickname: null, avatar_url: null },
             created_at: q.created_at,
           }
@@ -112,30 +104,28 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // ── POST /questions ── 发布问题 ─────────────────────────────────
     if (method === 'POST' && !hasId) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
       const me = user!.id
 
-      let body: { title?: string; content?: string; tags?: number[] }
+      let body: { title?: string; content?: string; category?: string; tags?: number[] }
       try {
         body = await req.json()
       } catch {
         return err('请求体不是有效 JSON', 400)
       }
 
-      const { title, content, tags } = body
+      const { title, content, category, tags } = body
 
       if (!title || title.trim().length < 5) return err('标题至少需要 5 个字符', 400)
       if (!content || content.trim() === '') return err('问题内容不能为空', 400)
 
       const supabase = createAdminClient()
 
-      // 插入问题
       const { data: newQuestion, error: insertErr } = await supabase
         .from('questions')
-        .insert({ user_id: me, title: title.trim(), content: content.trim() })
+        .insert({ user_id: me, title: title.trim(), content: content.trim(), category: category ?? null })
         .select('id')
         .single()
 
@@ -143,17 +133,20 @@ Deno.serve(async (req: Request) => {
 
       const questionId = newQuestion.id
 
-      // 插入标签关联
       if (tags && tags.length > 0) {
-        const tagRows = tags.map((tagId: number) => ({ question_id: questionId, tag_id: tagId }))
-        const { error: tagErr } = await supabase.from('question_tags').insert(tagRows)
-        if (tagErr) return err(tagErr.message, 500)
+        const tagInserts = tags.map((tagId) => ({
+          question_id: questionId,
+          tag_id: tagId,
+        }))
+        const { error: tagErr } = await supabase
+          .from('question_tags')
+          .insert(tagInserts)
+        if (tagErr) console.error('Failed to insert question tags:', tagErr.message)
       }
 
       return ok({ success: true, message: '问题发布成功', data: { id: questionId } }, 201)
     }
 
-    // ── GET /questions/:id/answers ── 获取回答列表 ──────────────────
     if (method === 'GET' && isAnswersRoute) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
@@ -161,6 +154,15 @@ Deno.serve(async (req: Request) => {
       const questionId = segments[0]
 
       const supabase = createAdminClient()
+
+      const { data: question, error: qErr } = await supabase
+        .from('questions')
+        .select('id')
+        .eq('id', questionId)
+        .maybeSingle()
+
+      if (qErr) return err(qErr.message, 500)
+      if (!question) return err('问题不存在或已删除', 404)
 
       const { data: answers, error: aErr } = await supabase
         .from('answers')
@@ -173,7 +175,6 @@ Deno.serve(async (req: Request) => {
 
       const answerList = answers ?? []
 
-      // 为每个回答获取用户信息
       const enriched = await Promise.all(
         answerList.map(async (a: {
           id: string
@@ -204,7 +205,6 @@ Deno.serve(async (req: Request) => {
       return ok({ success: true, data: enriched })
     }
 
-    // ── POST /questions/:id/answers ── 回答问题 ─────────────────────
     if (method === 'POST' && isAnswersRoute) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
@@ -214,16 +214,15 @@ Deno.serve(async (req: Request) => {
 
       const supabase = createAdminClient()
 
-      // 验证问题存在且 status='open'
       const { data: question, error: qErr } = await supabase
         .from('questions')
-        .select('id, status')
+        .select('id, is_solved')
         .eq('id', questionId)
         .maybeSingle()
 
       if (qErr) return err(qErr.message, 500)
       if (!question) return err('问题不存在', 404)
-      if (question.status !== 'open') return err('该问题已关闭，无法继续回答', 400)
+      if (question.is_solved) return err('该问题已关闭，无法继续回答', 400)
 
       let body: { content?: string }
       try {
@@ -236,7 +235,6 @@ Deno.serve(async (req: Request) => {
 
       if (!content || content.trim() === '') return err('回答内容不能为空', 400)
 
-      // 插入回答（answer_count 由触发器自动更新）
       const { data: newAnswer, error: insertErr } = await supabase
         .from('answers')
         .insert({ question_id: questionId, user_id: me, content: content.trim() })

@@ -308,7 +308,7 @@ export interface Question {
   id: string
   title: string
   content: string
-  tags: Array<{ id: number; name: string }>
+  tags?: Array<{ id: number; name: string }>
   answer_count: number
   has_accepted_answer: boolean
   user: UserBasic

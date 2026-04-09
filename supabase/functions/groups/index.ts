@@ -14,28 +14,21 @@ import { requireAuth, getPathSegments } from '../_shared/auth.ts'
 
 // @ts-ignore Deno
 Deno.serve(async (req: Request) => {
-  // 处理 CORS 预检
   const corsResp = handleCors(req)
   if (corsResp) return corsResp
 
   const url = new URL(req.url)
   const segments = getPathSegments(url, 'groups')
-  // segments[]:
-  //   []           → GET /groups  or  POST /groups
-  //   [':id', 'join'] → POST /groups/:id/join
 
   try {
-    // ── GET /groups ─────────────────────────────────────────
     if (req.method === 'GET' && segments.length === 0) {
       return await listGroups(req, url)
     }
 
-    // ── POST /groups ─────────────────────────────────────────
     if (req.method === 'POST' && segments.length === 0) {
       return await createGroup(req)
     }
 
-    // ── POST /groups/:id/join ─────────────────────────────────
     if (req.method === 'POST' && segments.length === 2 && segments[1] === 'join') {
       return await joinGroup(req, segments[0])
     }
@@ -47,7 +40,6 @@ Deno.serve(async (req: Request) => {
   }
 })
 
-// ── 列表 ─────────────────────────────────────────────────────
 async function listGroups(req: Request, url: URL): Promise<Response> {
   const [user, authErr] = await requireAuth(req)
   if (authErr) return authErr
@@ -57,10 +49,9 @@ async function listGroups(req: Request, url: URL): Promise<Response> {
 
   const db = createAdminClient()
 
-  // 构造查询
   let query = db
     .from('groups')
-    .select('id, name, description, cover_url, member_count', { count: 'exact' })
+    .select('id, name, description, avatar_url, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
@@ -75,19 +66,26 @@ async function listGroups(req: Request, url: URL): Promise<Response> {
     return err('获取社群列表失败', 500)
   }
 
-  // 查询当前用户已加入的社群 id 集合
   const groupIds: string[] = (groups ?? []).map((g: any) => g.id)
   let joinedSet = new Set<string>()
+  let memberCountMap = new Map<string, number>()
 
   if (groupIds.length > 0) {
     const { data: memberships } = await db
-      .from('group_members')
-      .select('group_id')
-      .eq('user_id', user!.id)
+      .from('conversation_members')
+      .select('group_id, user_id')
       .in('group_id', groupIds)
 
     if (memberships) {
-      for (const m of memberships) joinedSet.add(m.group_id)
+      for (const m of memberships) {
+        if (!memberCountMap.has(m.group_id)) {
+          memberCountMap.set(m.group_id, 0)
+        }
+        memberCountMap.set(m.group_id, memberCountMap.get(m.group_id)! + 1)
+        if (m.user_id === user!.id) {
+          joinedSet.add(m.group_id)
+        }
+      }
     }
   }
 
@@ -95,8 +93,8 @@ async function listGroups(req: Request, url: URL): Promise<Response> {
     id: g.id,
     name: g.name,
     description: g.description,
-    cover_url: g.cover_url,
-    member_count: g.member_count,
+    avatar_url: g.avatar_url,
+    member_count: memberCountMap.get(g.id) ?? 0,
     is_joined: joinedSet.has(g.id),
   }))
 
@@ -106,7 +104,6 @@ async function listGroups(req: Request, url: URL): Promise<Response> {
   })
 }
 
-// ── 创建 ─────────────────────────────────────────────────────
 async function createGroup(req: Request): Promise<Response> {
   const [user, authErr] = await requireAuth(req)
   if (authErr) return authErr
@@ -118,7 +115,7 @@ async function createGroup(req: Request): Promise<Response> {
     return err('请求体解析失败，请提供合法的 JSON')
   }
 
-  const { name, description, cover_url, tags } = body ?? {}
+  const { name, description, avatar_url, tags } = body ?? {}
 
   if (!name || typeof name !== 'string' || name.trim().length < 2) {
     return err('社群名称至少需要 2 个字符')
@@ -126,14 +123,13 @@ async function createGroup(req: Request): Promise<Response> {
 
   const db = createAdminClient()
 
-  // 插入社群
   const { data: group, error: insertErr } = await db
     .from('groups')
     .insert({
       name: name.trim(),
       description: description ?? null,
-      cover_url: cover_url ?? null,
-      creator_id: user!.id,
+      avatar_url: avatar_url ?? null,
+      creator_user_id: user!.id,
     })
     .select('id')
     .single()
@@ -145,19 +141,17 @@ async function createGroup(req: Request): Promise<Response> {
 
   const groupId: string = group.id
 
-  // 创建者自动成为 creator 成员
-  const { error: memberErr } = await db.from('group_members').insert({
+  const { error: memberErr } = await db.from('conversation_members').insert({
     group_id: groupId,
     user_id: user!.id,
-    role: 'creator',
+    role: 'owner',
+    related_type: 'group',
   })
 
   if (memberErr) {
     console.error('[groups] insert creator member error:', memberErr)
-    // 不阻断流程，仅记录
   }
 
-  // 插入标签关联
   if (Array.isArray(tags) && tags.length > 0) {
     const tagRows = tags
       .filter((t: any) => typeof t === 'number')
@@ -174,7 +168,6 @@ async function createGroup(req: Request): Promise<Response> {
   return ok({ success: true, message: '社群创建成功', data: { id: groupId } }, 201)
 }
 
-// ── 加入 ─────────────────────────────────────────────────────
 async function joinGroup(req: Request, groupId: string): Promise<Response> {
   const [user, authErr] = await requireAuth(req)
   if (authErr) return authErr
@@ -183,7 +176,6 @@ async function joinGroup(req: Request, groupId: string): Promise<Response> {
 
   const db = createAdminClient()
 
-  // 检查社群是否存在
   const { data: group, error: findErr } = await db
     .from('groups')
     .select('id')
@@ -196,9 +188,8 @@ async function joinGroup(req: Request, groupId: string): Promise<Response> {
   }
   if (!group) return err('社群不存在', 404)
 
-  // 检查是否已加入
   const { data: existing } = await db
-    .from('group_members')
+    .from('conversation_members')
     .select('group_id')
     .eq('group_id', groupId)
     .eq('user_id', user!.id)
@@ -206,11 +197,11 @@ async function joinGroup(req: Request, groupId: string): Promise<Response> {
 
   if (existing) return err('已加入该社群', 400)
 
-  // 加入
-  const { error: joinErr } = await db.from('group_members').insert({
+  const { error: joinErr } = await db.from('conversation_members').insert({
     group_id: groupId,
     user_id: user!.id,
     role: 'member',
+    related_type: 'group',
   })
 
   if (joinErr) {

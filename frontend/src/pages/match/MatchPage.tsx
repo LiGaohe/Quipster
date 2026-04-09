@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Avatar,
   Box,
@@ -34,8 +34,11 @@ const MatchPage: React.FC = () => {
   const [matchDialogOpen, setMatchDialogOpen] = useState(false)
   const [noMore, setNoMore] = useState(false)
   const [page, setPage] = useState(1)
+  const [isFetching, setIsFetching] = useState(false)
 
   const loadMore = useCallback(async (nextPage: number) => {
+    if (isFetching) return
+    setIsFetching(true)
     setLoading(true)
     try {
       const res = await matchesApi.getMatches({ page: nextPage, limit: 10 })
@@ -47,9 +50,10 @@ const MatchPage: React.FC = () => {
         setPage(nextPage)
       }
     } catch {
-      // ignore
+      setNoMore(true)
     } finally {
       setLoading(false)
+      setIsFetching(false)
     }
   }, [])
 

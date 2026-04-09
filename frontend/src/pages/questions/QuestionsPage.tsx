@@ -179,9 +179,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
           </Typography>
 
           {/* Tags */}
-          {question.tags.length > 0 && (
+          {(question.tags?.length ?? 0) > 0 && (
             <Box display="flex" flexWrap="wrap" gap={0.5} mb={1.5}>
-              {question.tags.map((tag) => (
+              {question.tags?.map((tag) => (
                 <Chip key={tag.id} label={tag.name} size="small" variant="outlined" />
               ))}
             </Box>
