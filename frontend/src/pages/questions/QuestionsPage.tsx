@@ -63,6 +63,7 @@ const CreateQuestionDialog: React.FC<CreateQuestionDialogProps> = ({
 
   const handleSubmit = async () => {
     if (!title.trim()) { toast.error('请填写问题标题'); return }
+    if (title.trim().length < 5) { toast.error('标题至少需要 5 个字符'); return }
     if (!content.trim()) { toast.error('请填写问题内容'); return }
     try {
       setSubmitting(true)
@@ -78,8 +79,10 @@ const CreateQuestionDialog: React.FC<CreateQuestionDialogProps> = ({
       setSelectedTags([])
       onCreated()
       onClose()
-    } catch {
-      toast.error('提问失败，请重试')
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { error?: string } } }
+      const message = axiosErr?.response?.data?.error ?? '提问失败，请重试'
+      toast.error(message)
     } finally {
       setSubmitting(false)
     }

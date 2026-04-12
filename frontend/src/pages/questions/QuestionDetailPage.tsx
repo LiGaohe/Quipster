@@ -49,15 +49,14 @@ const QuestionDetailPage: React.FC = () => {
     }
   }
 
-  // Load question from list
+  // Load question
   useEffect(() => {
     if (!questionId) return
     const load = async () => {
       try {
         setLoadingQuestion(true)
-        const res = await questionsApi.getQuestions({ limit: 100 })
-        const found = (res.data.data ?? []).find((q) => q.id === questionId) ?? null
-        setQuestion(found)
+        const res = await questionsApi.getQuestion(questionId)
+        setQuestion(res.data.data ?? null)
       } catch {
         toast.error('加载问题失败')
       } finally {

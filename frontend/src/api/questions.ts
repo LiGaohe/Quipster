@@ -12,6 +12,9 @@ export const questionsApi = {
   getQuestions: (params?: GetQuestionsParams) =>
     http.get<PaginatedResponse<Question>>('/questions', { params }),
 
+  getQuestion: (id: string) =>
+    http.get<ApiResponse<Question>>(`/questions/${id}`),
+
   createQuestion: (dto: CreateQuestionDto) =>
     http.post<ApiResponse<{ id: string }>>('/questions', dto),
 

@@ -147,6 +147,66 @@ Deno.serve(async (req: Request) => {
       return ok({ success: true, message: '问题发布成功', data: { id: questionId } }, 201)
     }
 
+    if (method === 'GET' && hasId && !isAnswersRoute) {
+      const [user, authResp] = await requireAuth(req)
+      if (authResp) return authResp
+
+      const questionId = segments[0]
+
+      const supabase = createAdminClient()
+
+      const { data: q, error: qErr } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('id', questionId)
+        .maybeSingle()
+
+      if (qErr) return err(qErr.message, 500)
+      if (!q) return err('问题不存在或已删除', 404)
+
+      const { count: answerCount } = await supabase
+        .from('answers')
+        .select('id', { count: 'exact', head: true })
+        .eq('question_id', q.id)
+
+      const { data: acceptedAnswer } = await supabase
+        .from('answers')
+        .select('id')
+        .eq('question_id', q.id)
+        .eq('is_accepted', true)
+        .maybeSingle()
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('id, nickname, avatar_url')
+        .eq('id', q.user_id)
+        .maybeSingle()
+
+      const { data: tagRows } = await supabase
+        .from('question_tags')
+        .select('tags(id, name)')
+        .eq('question_id', q.id)
+
+      const tags = tagRows
+        ?.map((row: { tags: { id: number; name: string } | null }) => row.tags)
+        .filter((t): t is { id: number; name: string } => t !== null) ?? []
+
+      const enriched = {
+        id: q.id,
+        title: q.title,
+        content: q.content,
+        tags,
+        category: q.category,
+        status: q.is_solved ? 'closed' : 'open',
+        answer_count: answerCount ?? 0,
+        has_accepted_answer: !!acceptedAnswer,
+        user: profile ?? { id: q.user_id, nickname: null, avatar_url: null },
+        created_at: q.created_at,
+      }
+
+      return ok({ success: true, data: enriched })
+    }
+
     if (method === 'GET' && isAnswersRoute) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
