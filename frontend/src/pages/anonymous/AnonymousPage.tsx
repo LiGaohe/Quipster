@@ -176,8 +176,7 @@ const AnonPostCard: React.FC<PostCardProps> = ({ post, onLikeChange }) => {
             {truncate(post.content)}
           </Typography>
 
-          {/* Tags */}
-          {post.tags.length > 0 && (
+          {post.tags && post.tags.length > 0 && (
             <Box display="flex" flexWrap="wrap" gap={0.5} mb={1.5}>
               {post.tags.map((tag) => (
                 <Chip key={tag.id} label={tag.name} size="small" variant="outlined" />

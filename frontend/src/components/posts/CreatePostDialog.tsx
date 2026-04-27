@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -10,12 +10,14 @@ import {
   Box,
   IconButton,
   CircularProgress,
-  Chip,
   Stack,
+  LinearProgress,
 } from '@mui/material'
 import { Close, AddPhotoAlternate, DeleteOutline } from '@mui/icons-material'
 import { useAppDispatch } from '@/store/hooks'
 import { createPost } from '@/store/slices/postsSlice'
+import { supabase } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
 
 interface CreatePostDialogProps {
   open: boolean
@@ -24,42 +26,93 @@ interface CreatePostDialogProps {
 
 const MAX_CONTENT = 500
 const MAX_IMAGES = 9
+const MAX_FILE_SIZE = 5 * 1024 * 1024
 
 const CreatePostDialog: React.FC<CreatePostDialogProps> = ({ open, onClose }) => {
   const dispatch = useAppDispatch()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [content, setContent] = useState('')
   const [imageUrls, setImageUrls] = useState<string[]>([])
-  const [imageInput, setImageInput] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
   const handleClose = () => {
-    if (submitting) return
+    if (submitting || uploading) return
     setContent('')
     setImageUrls([])
-    setImageInput('')
     setError('')
     onClose()
   }
 
-  const handleAddImage = () => {
-    const trimmed = imageInput.trim()
-    if (!trimmed) return
-    if (imageUrls.length >= MAX_IMAGES) {
-      setError(`最��添加 ${MAX_IMAGES} 张图片`)
+  const handleFileSelect = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    if (imageUrls.length + files.length > MAX_IMAGES) {
+      setError(`最多添加 ${MAX_IMAGES} 张图片`)
+      e.target.value = ''
       return
     }
-    // basic URL validation
-    try {
-      new URL(trimmed)
-    } catch {
-      setError('请输入合法的图片 URL')
-      return
-    }
-    setImageUrls((prev) => [...prev, trimmed])
-    setImageInput('')
+
+    setUploading(true)
+    setUploadProgress(0)
     setError('')
+
+    try {
+      const uploadedUrls: string[] = []
+      const totalFiles = files.length
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+
+        if (file.size > MAX_FILE_SIZE) {
+          setError(`图片 ${file.name} 超过 5MB 限制`)
+          continue
+        }
+
+        if (!file.type.startsWith('image/')) {
+          setError(`${file.name} 不是有效的图片文件`)
+          continue
+        }
+
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${uuidv4()}.${fileExt}`
+        const filePath = `posts/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('post-images')
+          .upload(filePath, file)
+
+        if (uploadError) {
+          setError(`上传 ${file.name} 失败: ${uploadError.message}`)
+          continue
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('post-images')
+          .getPublicUrl(filePath)
+
+        uploadedUrls.push(publicUrl)
+        setUploadProgress(((i + 1) / totalFiles) * 100)
+      }
+
+      if (uploadedUrls.length > 0) {
+        setImageUrls((prev) => [...prev, ...uploadedUrls])
+      }
+    } catch (err) {
+      setError('上传失败，请重试')
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
+      e.target.value = ''
+    }
   }
 
   const handleRemoveImage = (idx: number) => {
@@ -108,10 +161,10 @@ const CreatePostDialog: React.FC<CreatePostDialogProps> = ({ open, onClose }) =>
           pb: 1,
         }}
       >
-        <Typography variant="h6" fontWeight={600}>
+        <Typography component="span" variant="h6" fontWeight={600}>
           发布动态
         </Typography>
-        <IconButton size="small" onClick={handleClose} disabled={submitting}>
+        <IconButton size="small" onClick={handleClose} disabled={submitting || uploading}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -140,30 +193,38 @@ const CreatePostDialog: React.FC<CreatePostDialogProps> = ({ open, onClose }) =>
           </Typography>
         </Box>
 
-        {/* Image URL input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+
         <Box display="flex" alignItems="center" gap={1} mb={1.5}>
-          <TextField
-            size="small"
-            fullWidth
-            placeholder="粘贴图片链接（可选）"
-            value={imageInput}
-            onChange={(e) => setImageInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleAddImage()
-              }
-            }}
-          />
-          <IconButton
-            color="primary"
-            onClick={handleAddImage}
-            disabled={!imageInput.trim() || imageUrls.length >= MAX_IMAGES}
+          <Button
+            variant="outlined"
+            startIcon={<AddPhotoAlternate />}
+            onClick={handleFileSelect}
+            disabled={uploading || submitting || imageUrls.length >= MAX_IMAGES}
             size="small"
           >
-            <AddPhotoAlternate />
-          </IconButton>
+            选择图片
+          </Button>
+          <Typography variant="caption" color="text.secondary">
+            {imageUrls.length}/{MAX_IMAGES} 张
+          </Typography>
         </Box>
+
+        {uploading && (
+          <Box mb={2}>
+            <LinearProgress variant="determinate" value={uploadProgress} />
+            <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+              上传中... {Math.round(uploadProgress)}%
+            </Typography>
+          </Box>
+        )}
 
         {imageUrls.length > 0 && (
           <Stack spacing={1} mb={1}>
@@ -204,7 +265,7 @@ const CreatePostDialog: React.FC<CreatePostDialogProps> = ({ open, onClose }) =>
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {url}
+                  {url.split('/').pop()}
                 </Typography>
                 <IconButton size="small" onClick={() => handleRemoveImage(idx)}>
                   <DeleteOutline fontSize="small" />
@@ -212,12 +273,6 @@ const CreatePostDialog: React.FC<CreatePostDialogProps> = ({ open, onClose }) =>
               </Box>
             ))}
           </Stack>
-        )}
-
-        {imageUrls.length > 0 && (
-          <Typography variant="caption" color="text.secondary">
-            已添加 {imageUrls.length}/{MAX_IMAGES} 张图片
-          </Typography>
         )}
 
         {error && (
@@ -228,13 +283,13 @@ const CreatePostDialog: React.FC<CreatePostDialogProps> = ({ open, onClose }) =>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 1.5 }}>
-        <Button onClick={handleClose} disabled={submitting}>
+        <Button onClick={handleClose} disabled={submitting || uploading}>
           取消
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={submitting || !content.trim() || isOverLimit}
+          disabled={submitting || uploading || !content.trim() || isOverLimit}
           startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
         >
           {submitting ? '发布中...' : '发布'}

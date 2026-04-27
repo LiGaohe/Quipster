@@ -14,14 +14,12 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material'
-import { PeopleAlt } from '@mui/icons-material'
+import { PeopleAlt, Groups } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { format, isToday, isThisYear } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchConversations } from '@/store/slices/chatSlice'
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatTime(dateStr: string): string {
   try {
@@ -38,8 +36,6 @@ function formatTime(dateStr: string): string {
   }
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 const ChatListPage: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
@@ -50,7 +46,6 @@ const ChatListPage: React.FC = () => {
     dispatch(fetchConversations())
   }, [dispatch])
 
-  // ── Loading state ──
   if (loadingConversations && conversations.length === 0) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -59,7 +54,6 @@ const ChatListPage: React.FC = () => {
     )
   }
 
-  // ── Empty state ──
   if (!loadingConversations && conversations.length === 0) {
     return (
       <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -94,8 +88,11 @@ const ChatListPage: React.FC = () => {
 
       <List disablePadding>
         {conversations.map((conv, index) => {
-          const { conversation_id, peer_user, last_message, unread_count } = conv
+          const { conversation_id, peer_user, last_message, unread_count, is_group, name } = conv
           const hasUnread = unread_count > 0
+
+          const displayName = is_group ? (name || '群聊') : (peer_user?.nickname || '未知用户')
+          const displayAvatar = is_group ? undefined : peer_user?.avatar_url
 
           return (
             <React.Fragment key={conversation_id}>
@@ -108,7 +105,6 @@ const ChatListPage: React.FC = () => {
                     py: 1.2,
                   }}
                 >
-                  {/* Avatar with unread badge */}
                   <ListItemAvatar>
                     <Badge
                       badgeContent={unread_count}
@@ -117,17 +113,24 @@ const ChatListPage: React.FC = () => {
                       invisible={!hasUnread}
                       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                     >
-                      <Avatar
-                        src={peer_user.avatar_url}
-                        alt={peer_user.nickname}
-                        sx={{ width: 48, height: 48 }}
-                      >
-                        {peer_user.nickname?.[0]?.toUpperCase()}
-                      </Avatar>
+                      {is_group ? (
+                        <Avatar
+                          sx={{ width: 48, height: 48, bgcolor: 'primary.main' }}
+                        >
+                          <Groups />
+                        </Avatar>
+                      ) : (
+                        <Avatar
+                          src={displayAvatar}
+                          alt={displayName}
+                          sx={{ width: 48, height: 48 }}
+                        >
+                          {displayName?.[0]?.toUpperCase()}
+                        </Avatar>
+                      )}
                     </Badge>
                   </ListItemAvatar>
 
-                  {/* Nickname + last message preview */}
                   <ListItemText
                     sx={{ ml: 0.5 }}
                     primary={
@@ -136,7 +139,7 @@ const ChatListPage: React.FC = () => {
                         fontWeight={hasUnread ? 700 : 500}
                         noWrap
                       >
-                        {peer_user.nickname}
+                        {displayName}
                       </Typography>
                     }
                     secondary={
@@ -151,7 +154,6 @@ const ChatListPage: React.FC = () => {
                     }
                   />
 
-                  {/* Timestamp */}
                   <Box
                     display="flex"
                     flexDirection="column"
@@ -176,7 +178,6 @@ const ChatListPage: React.FC = () => {
         })}
       </List>
 
-      {/* Refresh loading indicator at bottom */}
       {loadingConversations && conversations.length > 0 && (
         <Box display="flex" justifyContent="center" py={2}>
           <CircularProgress size={24} />

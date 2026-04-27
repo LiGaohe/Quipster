@@ -143,7 +143,25 @@ Deno.serve(async (req: Request) => {
 
       if (insertErr) return err(insertErr.message, 500)
 
-      return ok({ success: true, data: newPost }, 201)
+      const { data: profile } = await supabase
+        .from('users')
+        .select('id, nickname, avatar_url')
+        .eq('id', me)
+        .maybeSingle()
+
+      return ok({
+        success: true,
+        data: {
+          id: newPost.id,
+          user: profile ?? { id: me, nickname: null, avatar_url: null },
+          content: newPost.content,
+          images: newPost.image_urls ?? [],
+          like_count: 0,
+          comment_count: 0,
+          is_liked: false,
+          created_at: newPost.created_at,
+        },
+      }, 201)
     }
 
     // ── POST /posts/:id/like ── 点赞/取消点赞 ──────────────────────
@@ -263,6 +281,45 @@ Deno.serve(async (req: Request) => {
           created_at: newComment.created_at,
         },
       }, 201)
+    }
+
+    // ── GET /posts/:id/comments ── 获取评论列表 ────────────────────
+    if (method === 'GET' && segments.length === 2 && segments[1] === 'comments') {
+      const postId = segments[0]
+      const supabase = createAdminClient()
+
+      const { data: postRow, error: postCheckErr } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('id', postId)
+        .eq('type', 'post')
+        .maybeSingle()
+
+      if (postCheckErr) return err(postCheckErr.message, 500)
+      if (!postRow) return err('帖子不存在', 404)
+
+      const { data: comments, error: commentsErr } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          content,
+          created_at,
+          users!posts_user_id_fkey(id, nickname, avatar_url)
+        `)
+        .eq('type', 'comment')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true })
+
+      if (commentsErr) return err(commentsErr.message, 500)
+
+      const formatted = (comments ?? []).map((c: any) => ({
+        id: c.id,
+        user: c.users ?? { id: null, nickname: null, avatar_url: null },
+        content: c.content,
+        created_at: c.created_at,
+      }))
+
+      return ok({ success: true, data: formatted })
     }
 
     return err(`Not Found: ${JSON.stringify(debugInfo)}`, 404)

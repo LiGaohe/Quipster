@@ -7,8 +7,8 @@ import { requireAuth, getPathSegments } from '../_shared/auth.ts'
 // ============================================================
 // events/index.ts — 校园活动
 //
-// GET  /events              → 活动列表（keyword, status 过滤，分页）
-// POST /events              → 创建活动
+// GET  /events              → 活动列表（keyword, status, group_id 过滤，分页）
+// POST /events              → 创建活动（支持社群活动）
 // POST /events/:id/signup   → 报名活动
 // ============================================================
 
@@ -47,6 +47,7 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
   const { page, limit, offset } = parsePagination(url)
   const keyword = url.searchParams.get('keyword')?.trim() ?? ''
   const status = url.searchParams.get('status')?.trim() ?? ''
+  const groupId = url.searchParams.get('group_id')?.trim() ?? ''
 
   const db = createAdminClient()
 
@@ -55,23 +56,27 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
   let query = db
     .from('activities')
     .select(
-      `id, title, description, image_url, creator_user_id,
-       start_time, end_time, location, max_participants, created_at`,
+      `id, title, description, image_url, creator_user_id, group_id,
+       event_time, start_time, end_time, location, max_participants, created_at`,
       { count: 'exact' }
     )
-    .order('start_time', { ascending: true })
+    .order('event_time', { ascending: true })
     .range(offset, offset + limit - 1)
 
   if (status === 'upcoming') {
-    query = query.gt('start_time', now)
+    query = query.gt('event_time', now)
   } else if (status === 'on_going') {
-    query = query.lte('start_time', now).or(`end_time.is.null,end_time.gt.${now}`)
+    query = query.lte('event_time', now).or(`end_time.is.null,end_time.gt.${now}`)
   } else if (status === 'ended') {
     query = query.lt('end_time', now)
   }
 
   if (keyword) {
     query = query.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%`)
+  }
+
+  if (groupId) {
+    query = query.eq('group_id', parseInt(groupId, 10))
   }
 
   const { data: events, error, count } = await query
@@ -120,10 +125,11 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
       title: e.title,
       description: e.description,
       image_url: e.image_url,
+      group_id: e.group_id,
       organizer: creator
         ? { id: creator.id, nickname: creator.nickname, avatar_url: creator.avatar_url }
         : { id: e.creator_user_id, nickname: null, avatar_url: null },
-      start_time: e.start_time,
+      start_time: e.event_time ?? e.start_time,
       end_time: e.end_time,
       location: e.location,
       max_participants: e.max_participants,
@@ -146,7 +152,7 @@ async function createEvent(req: Request): Promise<Response> {
     return err('请求体解析失败，请提供合法的 JSON')
   }
 
-  const { title, description, image_url, start_time, end_time, location, max_participants } =
+  const { title, description, image_url, start_time, end_time, location, max_participants, group_id } =
     body ?? {}
 
   if (!title || typeof title !== 'string' || !title.trim()) {
@@ -174,6 +180,24 @@ async function createEvent(req: Request): Promise<Response> {
 
   const db = createAdminClient()
 
+  if (group_id !== undefined && group_id !== null) {
+    const groupIdNum = parseInt(String(group_id), 10)
+    if (isNaN(groupIdNum)) {
+      return err('无效的社群 ID')
+    }
+
+    const { data: membership } = await db
+      .from('conversation_members')
+      .select('user_id')
+      .eq('group_id', groupIdNum)
+      .eq('user_id', user!.id)
+      .maybeSingle()
+
+    if (!membership) {
+      return err('您未加入该社群，无法创建社群活动', 403)
+    }
+  }
+
   const { data: event, error: insertErr } = await db
     .from('activities')
     .insert({
@@ -181,6 +205,8 @@ async function createEvent(req: Request): Promise<Response> {
       description: description ?? null,
       image_url: image_url ?? null,
       creator_user_id: user!.id,
+      group_id: group_id !== undefined ? parseInt(String(group_id), 10) || null : null,
+      event_time: parsedStart.toISOString(),
       start_time: parsedStart.toISOString(),
       end_time: end_time ? new Date(end_time).toISOString() : null,
       location: location ?? null,

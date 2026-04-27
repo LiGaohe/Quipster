@@ -149,7 +149,9 @@ export interface MatchActionResponse {
 
 export interface Conversation {
   conversation_id: string
-  peer_user: UserBasic
+  name?: string
+  is_group?: boolean
+  peer_user: UserBasic | null
   last_message?: {
     content: string
     created_at: string
@@ -159,15 +161,16 @@ export interface Conversation {
 
 export interface Message {
   id: string
-  sender_id: string
-  receiver_id?: string
+  sender_user_id: string
   content: string
   message_type: 'text' | 'image'
+  status: 'sent' | 'delivered' | 'read'
   created_at: string
 }
 
 export interface SendMessageDto {
-  receiver_id: string
+  receiver_id?: string
+  conversation_id?: string | number
   content: string
   message_type?: 'text' | 'image'
 }
@@ -216,19 +219,39 @@ export interface GetPostsParams {
 // ============================================================
 
 export interface Group {
-  id: string
+  id: string | number
   name: string
   description?: string
+  avatar_url?: string
   cover_url?: string
   member_count: number
   is_joined: boolean
+  my_role?: 'owner' | 'admin' | 'member' | null
+  creator_user_id?: string
+  created_at?: string
+  conversation_id?: string | number
 }
 
 export interface CreateGroupDto {
   name: string
   description?: string
+  avatar_url?: string
   cover_url?: string
   tags?: number[]
+}
+
+export interface UpdateGroupDto {
+  name?: string
+  description?: string
+  avatar_url?: string
+}
+
+export interface GroupMember {
+  user_id: string
+  nickname?: string
+  avatar_url?: string
+  role: 'owner' | 'admin' | 'member'
+  joined_at?: string
 }
 
 // ============================================================
@@ -240,6 +263,7 @@ export interface Event {
   title: string
   description?: string
   cover_url?: string
+  group_id?: number
   organizer: UserBasic
   start_time: string
   end_time?: string
@@ -253,6 +277,7 @@ export interface CreateEventDto {
   title: string
   description?: string
   cover_url?: string
+  group_id?: number
   start_time: string
   end_time?: string
   location?: string
@@ -262,6 +287,7 @@ export interface CreateEventDto {
 export interface GetEventsParams {
   keyword?: string
   status?: 'upcoming' | 'on_going' | 'ended'
+  group_id?: number
   page?: number
   limit?: number
 }
@@ -274,7 +300,7 @@ export interface AnonymousPost {
   id: string
   title: string
   content: string
-  tags: Array<{ id: number; name: string }>
+  tags?: Array<{ id: number; name: string }>
   like_count: number
   comment_count: number
   is_liked: boolean

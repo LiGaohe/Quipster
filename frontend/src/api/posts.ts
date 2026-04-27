@@ -20,4 +20,7 @@ export const postsApi = {
 
   commentPost: (postId: string, content: string) =>
     http.post<ApiResponse<Comment>>(`/posts/${postId}/comment`, { content }),
+
+  getComments: (postId: string) =>
+    http.get<ApiResponse<Comment[]>>(`/posts/${postId}/comments`),
 }

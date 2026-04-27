@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Card,
   CardHeader,
@@ -38,7 +38,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '@/store/hooks'
 import { toggleLike, addComment } from '@/store/slices/postsSlice'
 import { governanceApi } from '@/api/governance'
-import type { Post } from '@/types'
+import { postsApi } from '@/api/posts'
+import type { Post, Comment } from '@/types'
 
 interface PostCardProps {
   post: Post
@@ -57,6 +58,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const dispatch = useAppDispatch()
 
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentSubmitting, setCommentSubmitting] = useState(false)
   const [likeLoading, setLikeLoading] = useState(false)
@@ -75,6 +78,26 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     }
   })()
 
+  useEffect(() => {
+    if (commentsOpen && comments.length === 0) {
+      fetchComments()
+    }
+  }, [commentsOpen])
+
+  const fetchComments = async () => {
+    setCommentsLoading(true)
+    try {
+      const res = await postsApi.getComments(post.id)
+      if (res.data.data) {
+        setComments(res.data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+    } finally {
+      setCommentsLoading(false)
+    }
+  }
+
   const handleLike = async () => {
     if (likeLoading) return
     setLikeLoading(true)
@@ -90,8 +113,12 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     if (!trimmed) return
     setCommentSubmitting(true)
     try {
-      await dispatch(addComment({ postId: post.id, content: trimmed }))
-      setCommentText('')
+      const result = await dispatch(addComment({ postId: post.id, content: trimmed }))
+      if (addComment.fulfilled.match(result)) {
+        const newComment = result.payload.comment as Comment
+        setComments((prev) => [...prev, newComment])
+        setCommentText('')
+      }
     } finally {
       setCommentSubmitting(false)
     }
@@ -225,30 +252,68 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <Collapse in={commentsOpen} timeout="auto" unmountOnExit>
           <Divider />
           <Box sx={{ px: 2, py: 1.5 }}>
-            <Box display="flex" gap={1} alignItems="flex-start">
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="写下你的评论..."
-                multiline
-                maxRows={4}
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                inputProps={{ maxLength: 200 }}
-              />
-              <IconButton
-                color="primary"
-                onClick={handleCommentSubmit}
-                disabled={commentSubmitting || !commentText.trim()}
-                size="small"
-                sx={{ mt: 0.5 }}
-              >
-                {commentSubmitting ? <CircularProgress size={18} /> : <Send fontSize="small" />}
-              </IconButton>
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-              {commentText.length}/200
-            </Typography>
+            {commentsLoading ? (
+              <Box display="flex" justifyContent="center" py={2}>
+                <CircularProgress size={20} />
+              </Box>
+            ) : (
+              <>
+                {comments.length > 0 && (
+                  <Box mb={2}>
+                    {comments.map((comment, idx) => (
+                      <Box key={comment.id}>
+                        {idx > 0 && <Divider sx={{ my: 1 }} />}
+                        <Box display="flex" alignItems="flex-start" gap={1} py={0.5}>
+                          <Avatar
+                            src={comment.user.avatar_url}
+                            alt={comment.user.nickname}
+                            sx={{ width: 24, height: 24, fontSize: 12 }}
+                          >
+                            {comment.user.nickname?.[0]?.toUpperCase()}
+                          </Avatar>
+                          <Box flex={1}>
+                            <Typography variant="caption" fontWeight={600} display="block">
+                              {comment.user.nickname}
+                            </Typography>
+                            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                              {comment.content}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block" mt={0.25}>
+                              {format(new Date(comment.created_at), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                <Box display="flex" gap={1} alignItems="flex-start">
+                  <TextField
+                    fullWidth
+                    size="small"
+                    placeholder="写下你的评论..."
+                    multiline
+                    maxRows={4}
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    inputProps={{ maxLength: 200 }}
+                  />
+                  <IconButton
+                    color="primary"
+                    onClick={handleCommentSubmit}
+                    disabled={commentSubmitting || !commentText.trim()}
+                    size="small"
+                    sx={{ mt: 0.5 }}
+                  >
+                    {commentSubmitting ? <CircularProgress size={18} /> : <Send fontSize="small" />}
+                  </IconButton>
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                  {commentText.length}/200
+                </Typography>
+              </>
+            )}
           </Box>
         </Collapse>
       </Card>

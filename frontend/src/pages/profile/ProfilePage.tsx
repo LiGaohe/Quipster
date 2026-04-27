@@ -30,6 +30,15 @@ function creditColor(score: number): 'success' | 'warning' | 'error' | 'default'
   return 'default'
 }
 
+function genderLabel(gender: string): string {
+  const labels: Record<string, string> = {
+    male: '男',
+    female: '女',
+    other: '其他',
+  }
+  return labels[gender] ?? gender
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
@@ -198,7 +207,7 @@ export default function ProfilePage() {
             )}
             {user.gender && (
               <Typography variant="body2" color="text.secondary">
-                {user.gender}
+                {genderLabel(user.gender)}
               </Typography>
             )}
           </Stack>

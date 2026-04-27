@@ -1,8 +1,8 @@
 // @ts-ignore Deno
-import { handleCors } from '../_shared/cors.ts'
-import { createAdminClient } from '../_shared/supabase.ts'
-import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
-import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { handleCors } from './cors.ts'
+import { createAdminClient } from './supabase.ts'
+import { ok, err, buildPagination, parsePagination } from './response.ts'
+import { requireAuth, getPathSegments } from './auth.ts'
 
 // ============================================================
 // anonymous-posts/index.ts — 匿名树洞
@@ -122,7 +122,7 @@ async function listPosts(req: Request, url: URL): Promise<Response> {
   for (const l of userLikes ?? []) likedSet.add(String(l.target_id))
 
   const list = postList.map((p: any) => ({
-    id: p.id,
+    id: String(p.id),
     title: p.title,
     content: p.content,
     tag: p.tag,

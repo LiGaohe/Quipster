@@ -11,22 +11,20 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { ArrowBack, Send } from '@mui/icons-material'
+import { ArrowBack, Send, Groups } from '@mui/icons-material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { supabase } from '@/lib/supabase'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
+  fetchConversations,
   fetchMessages,
   sendMessage,
   receiveMessage,
   setActiveConversation,
 } from '@/store/slices/chatSlice'
-import { chatApi } from '@/api/chat'
 import type { Message } from '@/types'
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatMessageTime(dateStr: string): string {
   try {
@@ -35,8 +33,6 @@ function formatMessageTime(dateStr: string): string {
     return ''
   }
 }
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 interface BubbleProps {
   message: Message
@@ -77,8 +73,6 @@ const MessageBubble: React.FC<BubbleProps> = ({ message, isSelf }) => {
   )
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 const ChatRoomPage: React.FC = () => {
   const { conversationId } = useParams<{ conversationId: string }>()
   const navigate = useNavigate()
@@ -91,11 +85,13 @@ const ChatRoomPage: React.FC = () => {
   )
   const loadingMessages = useAppSelector((state) => state.chat.loadingMessages)
 
-  // Find peer user from conversations list
   const conversation = conversations.find(
-    (c) => c.conversation_id === conversationId
+    (c) => String(c.conversation_id) === String(conversationId)
   )
+
+  const isGroup = conversation?.is_group ?? false
   const peerUser = conversation?.peer_user
+  const groupName = conversation?.name || '群聊'
 
   const [inputValue, setInputValue] = useState('')
   const [sending, setSending] = useState(false)
@@ -103,24 +99,26 @@ const ChatRoomPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // ── Scroll to bottom ──
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior })
   }, [])
 
-  // ── Load messages & set active conversation ──
+  useEffect(() => {
+    if (conversations.length === 0) {
+      dispatch(fetchConversations())
+    }
+  }, [dispatch, conversations.length])
+
   useEffect(() => {
     if (!conversationId) return
     dispatch(setActiveConversation(conversationId))
     dispatch(fetchMessages({ conversationId, page: 1 }))
   }, [dispatch, conversationId])
 
-  // ── Scroll to bottom when messages change ──
   useEffect(() => {
     scrollToBottom('auto')
   }, [messages, scrollToBottom])
 
-  // ── Supabase Realtime subscription ──
   useEffect(() => {
     if (!conversationId) return
 
@@ -150,26 +148,37 @@ const ChatRoomPage: React.FC = () => {
     }
   }, [dispatch, conversationId])
 
-  // ── Send message ──
   const handleSend = useCallback(async () => {
     const content = inputValue.trim()
-    if (!content || !peerUser || sending) return
+    if (!content || sending) return
+
+    if (!isGroup && !peerUser) return
 
     setSending(true)
     setInputValue('')
     try {
-      await dispatch(
-        sendMessage({
-          receiver_id: peerUser.id,
-          content,
-          message_type: 'text',
-        })
-      )
+      if (isGroup) {
+        await dispatch(
+          sendMessage({
+            conversation_id: conversationId,
+            content,
+            message_type: 'text',
+          })
+        )
+      } else {
+        await dispatch(
+          sendMessage({
+            receiver_id: peerUser!.id,
+            content,
+            message_type: 'text',
+          })
+        )
+      }
     } finally {
       setSending(false)
       inputRef.current?.focus()
     }
-  }, [dispatch, inputValue, peerUser, sending])
+  }, [dispatch, inputValue, peerUser, sending, isGroup, conversationId])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -178,7 +187,9 @@ const ChatRoomPage: React.FC = () => {
     }
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  const displayName = isGroup ? groupName : (peerUser?.nickname || '未知用户')
+  const displayAvatar = isGroup ? undefined : peerUser?.avatar_url
+  const displayInfo = isGroup ? null : [peerUser?.major, peerUser?.grade].filter(Boolean).join(' · ')
 
   return (
     <Box
@@ -187,7 +198,6 @@ const ChatRoomPage: React.FC = () => {
       height="100dvh"
       bgcolor="background.default"
     >
-      {/* ── Top bar ── */}
       <Paper
         elevation={1}
         square
@@ -206,22 +216,35 @@ const ChatRoomPage: React.FC = () => {
             <ArrowBack />
           </IconButton>
 
-          {peerUser ? (
+          {isGroup ? (
             <>
               <Avatar
-                src={peerUser.avatar_url}
-                alt={peerUser.nickname}
-                sx={{ width: 36, height: 36, mr: 1.5 }}
+                sx={{ width: 36, height: 36, mr: 1.5, bgcolor: 'primary.main' }}
               >
-                {peerUser.nickname?.[0]?.toUpperCase()}
+                <Groups />
               </Avatar>
               <Box>
                 <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>
-                  {peerUser.nickname}
+                  {displayName}
                 </Typography>
-                {(peerUser.major || peerUser.grade) && (
+              </Box>
+            </>
+          ) : peerUser ? (
+            <>
+              <Avatar
+                src={displayAvatar}
+                alt={displayName}
+                sx={{ width: 36, height: 36, mr: 1.5 }}
+              >
+                {displayName?.[0]?.toUpperCase()}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>
+                  {displayName}
+                </Typography>
+                {displayInfo && (
                   <Typography variant="caption" color="text.secondary" lineHeight={1}>
-                    {[peerUser.major, peerUser.grade].filter(Boolean).join(' · ')}
+                    {displayInfo}
                   </Typography>
                 )}
               </Box>
@@ -234,7 +257,6 @@ const ChatRoomPage: React.FC = () => {
         </Toolbar>
       </Paper>
 
-      {/* ── Messages area ── */}
       <Box
         flex={1}
         overflow="auto"
@@ -258,17 +280,15 @@ const ChatRoomPage: React.FC = () => {
         )}
 
         {messages.map((msg) => {
-          const isSelf = msg.sender_id === currentUser?.id
+          const isSelf = msg.sender_user_id === currentUser?.id
           return (
             <MessageBubble key={msg.id} message={msg} isSelf={isSelf} />
           )
         })}
 
-        {/* Anchor for auto-scroll */}
         <div ref={messagesEndRef} />
       </Box>
 
-      {/* ── Input bar ── */}
       <Paper
         elevation={3}
         square

@@ -179,6 +179,7 @@ const CreditPage: React.FC = () => {
   const level = getCreditLevel(score)
   const progressColor = getProgressColor(score)
   const lowCredit = score < 60
+  const records = creditInfo.records ?? []
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -298,7 +299,7 @@ const CreditPage: React.FC = () => {
         变更记录
       </Typography>
 
-      {creditInfo.records.length === 0 ? (
+      {records.length === 0 ? (
         <Box textAlign="center" py={6}>
           <Typography variant="body2" color="text.secondary">
             暂无变更记录
@@ -307,11 +308,11 @@ const CreditPage: React.FC = () => {
       ) : (
         <Card sx={{ borderRadius: 2 }}>
           <CardContent sx={{ py: 0, '&:last-child': { pb: 0 } }}>
-            {creditInfo.records.map((record, index) => (
+            {records.map((record, index) => (
               <CreditRecordItem
                 key={index}
                 record={record}
-                isLast={index === creditInfo.records.length - 1}
+                isLast={index === records.length - 1}
               />
             ))}
           </CardContent>

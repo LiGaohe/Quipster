@@ -94,8 +94,8 @@ export default function App() {
         <Route path="/credit" element={<CreditPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/:userId" element={<ProfilePage />} />
         <Route path="/profile/edit" element={<EditProfilePage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

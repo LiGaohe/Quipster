@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "academic-writing": {
+      "source": "jamditis/claude-skills-journalism",
+      "sourceType": "github",
+      "computedHash": "5f65557e34f32ba47f17583972d8aa4cd6acea08d3061c58947c5301818e5dec"
+    },
+    "giving-presentations": {
+      "source": "refoundai/lenny-skills",
+      "sourceType": "github",
+      "computedHash": "cf63f007c40471b04009b55107f2c930483bb025a6c938e1408d59fb22cb1c69"
+    },
+    "presentation-design": {
+      "source": "jwynia/agent-skills",
+      "sourceType": "github",
+      "computedHash": "cc83e20ff7b7df6ada2eada0a92843fe0e726cdffd40a8fd3297de3a8678be6e"
+    }
+  }
+}

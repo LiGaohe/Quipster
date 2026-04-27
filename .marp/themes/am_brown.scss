@@ -1,0 +1,419 @@
+/* @theme am_brown */
+@charset "UTF-8";
+@import 'default';
+@import 'https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+@import url(https://fonts.bunny.net/css?family=charm:700);
+@auto-scaling true;
+
+:root {
+  --color-background: rgba(254, 176, 98, 0.1);
+  --color-code-bg: #f9f4ee;
+  --color-coverbg: #b2894c;
+  --color-few: #894cb2;
+  --color-footer: #8c8c8c;
+  --color-main: #1c2a39;
+  --color-much: #9a7641;
+  --color-navbar-bg: #f5ede2;
+  --color-navbar-font: rgb(108, 95, 91);
+  --color-title: rgb(255, 255, 255);
+  --color-trans: #cda974;
+  --filter-b: brightness(30%) contrast(70%) grayscale(100%);
+  --filter-c: brightness(0%) contrast(60%) grayscale(80%);
+  --filter-e: brightness(0%) contrast(70%) grayscale(100%);
+    --font-family-main: 'Latin Modern Math','Adobe Garamond','方正宋刻本秀楷简体','Calibri','楷体','华文中宋','楷体','霞鹜文楷 屏幕阅读版';
+  --font-family-title: 'Optima LT Medium','Arial','方正苏新诗柳楷简体','黑体';
+  --font-family-footer: 'Charm','Calibri','叶根友毛笔行书修正版','方正苏新诗柳楷简体','楷体';
+  --font-family-code: 'Fira Code','HYMingChanKeBen W','Consolas','霞鹜文楷等宽','华文中宋','宋体';
+  --font-size-1: 55px;
+  --foot-size-subtitle: 42px;
+  --font-size-2-3: 38px;
+  --font-size-4-5: 30px;
+  --font-size-main: 25px;
+  --font-size-footer: 22px;
+  --font-size-page: 12px;
+  --font-size-code: 22px;
+  
+section {
+  font-family: var(--font-family-main);
+  font-size: var(--font-size-main);
+  color: var(--color-main);
+  text-align: justify;
+}
+
+h1 {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-1);
+  color: var(--color-title);
+}
+
+h2, h3 {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-2-3);
+  color: var(--color-much);
+}
+
+h4, h5 {
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-4-5);
+  color: var(--color-much);
+}
+
+header {
+  top: 12px;
+}
+
+ol {
+  line-height: 1.4rem;
+  padding-left: 35px;
+}
+
+ol li::marker {
+  color: var(--color-much);
+}
+
+ul {
+  line-height: 1.4rem;
+  padding-left: 35px;
+}
+
+ul > li > ul > li {
+  font-size: 0.9rem;
+}
+
+ul > li > ul > li > ul > li {
+  font-size: 0.85rem;
+}
+
+ul.a {
+  list-style-type: disc;
+}
+
+ul.b {
+  list-style-type: circle;
+}
+
+ul.c {
+  list-style-type: square;
+}
+
+ul li::marker {
+  color: var(--color-much);
+}
+
+blockquote {
+  border-left: 8px solid var(--color-much);
+  padding: 10px 25px;
+  border-radius: 8px;
+  background-color: var(--color-quote);
+  font-size: 0.9rem;
+  font-family: var(--font-family-main);
+}
+
+blockquote strong {
+  font-family: var(--font-family-main);
+}
+
+blockquote > p::before {
+  color: var(--color-much);
+  padding-right: 2%;
+  content: "\f10d";
+  font-family: "FontAwesome";
+}
+
+a {
+  font-size: 0.9rem;
+  padding: 0 0.2rem;
+  color: var(--color-main);
+  font-family: var(--font-family-main);
+}
+
+a:hover {
+  color: var(--color-much);
+  text-decoration: underline;
+}
+
+a::after {
+  font-size: 0.6em;
+  padding-left: 0.5%;
+  content: "\f148";
+  font-family: "FontAwesome";
+  color: var(--color-much);
+}
+
+section::after {
+  font-family: "FontAwesome";
+  font-size: var(--font-size-page);
+  margin-right: -10px;
+  margin-bottom: -14px;
+  content: attr(data-marpit-pagination) "\f101 " attr(data-marpit-pagination-total);
+  letter-spacing: 3px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--color-footer);
+  color: var(--color-footer);
+}
+
+footer {
+  color: var(--color-footer);
+  bottom: 1%;
+  left: 2%;
+  width: 100%;
+  height: 4%;
+  display: flex;
+  justify-content: space-between;
+}
+
+footer > em {
+  font-family: var(--font-family-footer);
+  font-size: var(--font-size-footer);
+  letter-spacing: 1px;
+  font-style: normal;
+}
+
+footer::after {
+  content: "";
+}
+
+.MathJax {
+  font-size: 0.95rem;
+}
+
+h2 .MathJax, h3 .MathJax, h4 .MathJax, h3 .MathJax {
+  font-size: 1.5rem;
+}
+
+h4 .MathJax, h5 .MathJax {
+  font-size: 1.2rem;
+}
+
+pre {
+  text-align: left;
+  border: 0.3px solid var(--color-few);
+  border-radius: 10px;
+  padding: 28px;
+  line-height: 115%;
+  overflow: auto;
+  font-size: var(--font-size-footer);
+  font-size: 0.9rem;
+}
+
+*::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 3px;
+  background-color: #f6f8fa;
+}
+
+*::-webkit-scrollbar-track:hover {
+  background-color: var(--color-few);
+}
+
+*::-webkit-scrollbar-track:active {
+  background-color: var(--color-few);
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background-color: var(--color-few);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-few);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: var(--color-few);
+}
+
+code {
+  padding: 2px;
+  border-radius: 1px;
+  background-color: var(--color-code-bg);
+  font-family: var(--font-family-code);
+  font-size: 0.8rem;
+  letter-spacing: -1px;
+}
+
+strong {
+  font-size: 1.03rem;
+  font-weight: bolder;
+  color: var(--color-much);
+}
+
+st {
+  font-size: 0.9rem;
+  font-style: normal;
+}
+
+em {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+ins {
+  text-decoration-color: var(--color-much);
+}
+
+img {
+  max-width: 95%;
+  border-radius: 8px;
+  margin: auto;
+}
+
+img[alt*='#l'] {
+  float: left;
+}
+
+img[alt*='#r'] {
+  float: right;
+}
+
+img[alt*='#c'] {
+  display: block;
+  margin: auto;
+}
+
+section.cover_a {
+  width: 100%;
+  background: linear-gradient(to bottom, var(--color-coverbg) 60%, white 40%);
+  text-align: center;
+}
+
+section.cover_a h1 {
+  background-color: var(--color-coverbg);
+  vertical-align: middle;
+  padding: 0px 80px;
+  top: 28%;
+  width: 88%;
+  transform: translateX(-6%);
+  position: absolute;
+}
+
+section.cover_a h6 {
+  font-family: var(--font-family-title);
+  font-size: var(--foot-size-subtitle);
+  color: var(--color-title);
+  padding: 0px 80px;
+  top: 38%;
+  width: 90%;
+  transform: translateX(-6%);
+  position: absolute;
+}
+
+section.cover_a p {
+  bottom: 8%;
+  width: 100%;
+  transform: translateX(-6%);
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+}
+
+section.cover_a strong {
+  color: var(--color-main);
+}
+
+section.cover_a a::after {
+  content: "";
+}
+
+section.toc_a ul {
+  list-style-type: none;
+  padding: 30px;
+  margin: 30px;
+  position: relative;
+  border-radius: 0px 0px 20px 20px;
+  border-top: 8px solid var(--color-navbar-font);
+  background-color: white;
+  box-shadow: 3px 3px 25px rgb(215, 224, 235);
+}
+
+section.toc_a ul li {
+  counter-increment: toc_a;
+}
+
+section.toc_a ul li::before {
+  font-family: var(--font-family-title);
+  color: white;
+  content: counter(toc_a);
+  margin-right: 20px;
+  margin-bottom: 10px;
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-much);
+  border-radius: 50%;
+}
+
+section.toc_a ul li:hover::before {
+  -moz-transition: all 0.5s ease-out;
+  transition: all 0.3s ease-out;
+  -moz-transform: rotate(360deg);
+  -webkit-transform: rotate(360deg);
+  -o-transform: rotate(360deg);
+  -ms-transform: rotate(360deg);
+  transform: rotate(360deg);
+}
+
+section.toc_a header {
+  height: 100%;
+  width: 150%;
+  font-family: 'Fira Code';
+  font-weight: bolder;
+  font-size: 1080%;
+  left: -8px;
+  text-align: center;
+  display: flex;
+  line-height: 162px;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.75px var(--color-navbar-font);
+}
+
+section.cols-2 {
+  overflow: visible;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: 10% 90%;
+  grid-template-areas:
+    "slideheading slideheading"
+    "leftpanel    rightpanel";
+}
+
+section.cols-2 h2, section.cols-2 h3 {
+  grid-area: slideheading;
+  font-size: var(--font-size-2-3);
+}
+
+section.cols-2 .ldiv {
+  grid-area: leftpanel;
+  margin-top: -5%;
+}
+
+section.cols-2 .rdiv {
+  grid-area: rightpanel;
+  margin-top: -5%;
+}
+
+section.cols-2 .limg {
+  grid-area: leftpanel;
+  margin-top: -5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+section.cols-2 .rimg {
+  grid-area: rightpanel;
+  margin-top: -5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+}

@@ -27,6 +27,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Add, Group, Search } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
 import { groupsApi } from '@/api/groups'
 import { tagsApi } from '@/api/tags'
 import type { CreateGroupDto, Group as GroupType, Tag } from '@/types'
@@ -218,13 +219,19 @@ const CreateGroupDialog: React.FC<CreateGroupDialogProps> = ({ open, onClose, on
 
 interface GroupCardProps {
   group: GroupType
-  onJoinToggle: (groupId: string, joined: boolean) => void
+  onJoinToggle: (groupId: string | number, joined: boolean) => void
 }
 
 const GroupCard: React.FC<GroupCardProps> = ({ group, onJoinToggle }) => {
+  const navigate = useNavigate()
   const [joining, setJoining] = useState(false)
 
-  const handleJoin = async () => {
+  const handleCardClick = () => {
+    navigate(`/groups/${group.id}`)
+  }
+
+  const handleJoin = async (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (group.is_joined || joining) return
     setJoining(true)
     try {
@@ -239,6 +246,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onJoinToggle }) => {
 
   return (
     <Card
+      onClick={handleCardClick}
       sx={{
         height: '100%',
         display: 'flex',
@@ -246,6 +254,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onJoinToggle }) => {
         borderRadius: 2,
         boxShadow: 1,
         transition: 'box-shadow 0.2s',
+        cursor: 'pointer',
         '&:hover': { boxShadow: 4 },
       }}
     >
@@ -309,7 +318,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onJoinToggle }) => {
           fullWidth
           sx={{ borderRadius: 2 }}
         >
-          {group.is_joined ? '已加入' : '加入'}
+          {group.is_joined ? '查看详情' : '加入'}
         </Button>
       </CardActions>
     </Card>
@@ -381,10 +390,10 @@ const GroupsPage: React.FC = () => {
     return () => observer.disconnect()
   }, [hasMore, loading, page, debouncedKeyword, loadGroups])
 
-  const handleJoinToggle = (groupId: string, joined: boolean) => {
+  const handleJoinToggle = (groupId: string | number, joined: boolean) => {
     setGroups((prev) =>
       prev.map((g) =>
-        g.id === groupId
+        g.id == groupId
           ? { ...g, is_joined: joined, member_count: g.member_count + (joined ? 1 : -1) }
           : g
       )

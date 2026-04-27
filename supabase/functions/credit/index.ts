@@ -45,12 +45,15 @@ Deno.serve(async (req: Request) => {
       // 查询最近 50 条信用记录
       const { data: records, error: recordsErr } = await supabase
         .from('credit_records')
-        .select('type, amount, reason, created_at')
+        .select('change, reason, created_at')
         .eq('user_id', me)
         .order('created_at', { ascending: false })
         .limit(50)
 
-      if (recordsErr) return err(recordsErr.message, 500)
+      if (recordsErr) {
+        console.error('[credit] get records error:', JSON.stringify(recordsErr))
+        return err(recordsErr.message, 500)
+      }
 
       return ok({
         success: true,
@@ -58,13 +61,12 @@ Deno.serve(async (req: Request) => {
           credit_score: creditScore,
           level,
           records: (records ?? []).map((r: {
-            type: string
-            amount: number
+            change: number
             reason: string
             created_at: string
           }) => ({
-            type: r.type,
-            amount: r.amount,
+            type: r.change >= 0 ? 'increase' : 'decrease',
+            amount: Math.abs(r.change),
             reason: r.reason,
             created_at: r.created_at,
           })),

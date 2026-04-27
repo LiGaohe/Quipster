@@ -138,7 +138,7 @@ const AnonymousDetailPage: React.FC = () => {
           {formatTime(post.created_at)}
         </Typography>
 
-        {post.tags.length > 0 && (
+        {post.tags && post.tags.length > 0 && (
           <Box display="flex" flexWrap="wrap" gap={0.5} mb={2}>
             {post.tags.map((tag) => (
               <Chip key={tag.id} label={tag.name} size="small" variant="outlined" />

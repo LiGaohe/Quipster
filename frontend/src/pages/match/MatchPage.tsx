@@ -123,7 +123,7 @@ const MatchPage: React.FC = () => {
           <Button
             variant="outlined"
             sx={{ mt: 3 }}
-            onClick={() => navigate('/profile/me/edit')}
+            onClick={() => navigate('/profile/edit')}
           >
             完善资料
           </Button>
@@ -205,7 +205,7 @@ const MatchPage: React.FC = () => {
               >
                 <Favorite sx={{ color: 'error.main', fontSize: 18 }} />
                 <Typography variant="body2" fontWeight={600} color="error.main">
-                  匹配度 {Math.round(current.match_score * 100)}%
+                  匹配度 {current.match_score}%
                 </Typography>
               </Box>
 
