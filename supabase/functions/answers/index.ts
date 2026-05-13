@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: question, error: qErr } = await supabase
         .from('questions')
-        .select('id, user_id, has_accepted_answer, status')
+        .select('id, user_id, is_solved')
         .eq('id', answer.question_id)
         .maybeSingle()
 
@@ -57,7 +57,16 @@ Deno.serve(async (req: Request) => {
       }
 
       // 检查问题是否已有采纳答案
-      if (question.has_accepted_answer) {
+      const { data: existingAcceptedAnswer, error: acceptedErr } = await supabase
+        .from('answers')
+        .select('id')
+        .eq('question_id', answer.question_id)
+        .eq('is_accepted', true)
+        .maybeSingle()
+
+      if (acceptedErr) return err(acceptedErr.message, 500)
+
+      if (existingAcceptedAnswer) {
         return err('已有采纳答案', 400)
       }
 
@@ -72,7 +81,7 @@ Deno.serve(async (req: Request) => {
       // 更新问题状态
       const { error: updateQuestionErr } = await supabase
         .from('questions')
-        .update({ has_accepted_answer: true, status: 'closed' })
+        .update({ is_solved: true })
         .eq('id', answer.question_id)
 
       if (updateQuestionErr) return err(updateQuestionErr.message, 500)
@@ -82,9 +91,10 @@ Deno.serve(async (req: Request) => {
         .from('credit_records')
         .insert({
           user_id: answer.user_id,
-          type: 'increase',
-          amount: 5,
+          change: 5,
           reason: '回答被采纳',
+          related_type: 'answer',
+          related_id: Number(answer.id),
         })
 
       if (creditInsertErr) return err(creditInsertErr.message, 500)

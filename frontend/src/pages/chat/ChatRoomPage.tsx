@@ -11,10 +11,12 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { ArrowBack, Send, Groups } from '@mui/icons-material'
+import { ArrowBack, Send, Groups, WarningAmber } from '@mui/icons-material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
+import IcebreakerPanel from '@/components/chat/IcebreakerPanel'
+import { matchesApi } from '@/api/matches'
 import { supabase } from '@/lib/supabase'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
@@ -24,7 +26,14 @@ import {
   receiveMessage,
   setActiveConversation,
 } from '@/store/slices/chatSlice'
-import type { Message } from '@/types'
+import type { IcebreakerSuggestion, Message } from '@/types'
+
+const auditLabelMap: Record<string, string> = {
+  pending: '待审',
+  passed: '通过',
+  flagged: '已标记',
+  rejected: '已拒绝',
+}
 
 function formatMessageTime(dateStr: string): string {
   try {
@@ -61,6 +70,14 @@ const MessageBubble: React.FC<BubbleProps> = ({ message, isSelf }) => {
         }}
       >
         <Typography variant="body2">{message.content}</Typography>
+        {message.audit_status && message.audit_status !== 'passed' && (
+          <Box mt={0.75} display="flex" alignItems="center" gap={0.5}>
+            <WarningAmber fontSize="inherit" />
+            <Typography variant="caption">
+              风险标记：{auditLabelMap[message.audit_status] ?? message.audit_status}
+            </Typography>
+          </Box>
+        )}
       </Box>
       <Typography
         variant="caption"
@@ -95,6 +112,8 @@ const ChatRoomPage: React.FC = () => {
 
   const [inputValue, setInputValue] = useState('')
   const [sending, setSending] = useState(false)
+  const [icebreaker, setIcebreaker] = useState<IcebreakerSuggestion | null>(null)
+  const [icebreakerLoading, setIcebreakerLoading] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -118,6 +137,39 @@ const ChatRoomPage: React.FC = () => {
   useEffect(() => {
     scrollToBottom('auto')
   }, [messages, scrollToBottom])
+
+  useEffect(() => {
+    if (!peerUser || isGroup) {
+      setIcebreaker(null)
+      return
+    }
+
+    let cancelled = false
+
+    const loadIcebreaker = async () => {
+      setIcebreakerLoading(true)
+      try {
+        const res = await matchesApi.getIcebreaker(peerUser.id)
+        if (!cancelled) {
+          setIcebreaker(res.data.data ?? null)
+        }
+      } catch {
+        if (!cancelled) {
+          setIcebreaker(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setIcebreakerLoading(false)
+        }
+      }
+    }
+
+    loadIcebreaker()
+
+    return () => {
+      cancelled = true
+    }
+  }, [peerUser, isGroup])
 
   useEffect(() => {
     if (!conversationId) return
@@ -265,6 +317,25 @@ const ChatRoomPage: React.FC = () => {
         display="flex"
         flexDirection="column"
       >
+        {!isGroup && peerUser && (
+          <Box mb={2}>
+            <IcebreakerPanel
+              icebreaker={icebreaker}
+              loading={icebreakerLoading}
+              onRefresh={async () => {
+                try {
+                  setIcebreakerLoading(true)
+                  const res = await matchesApi.getIcebreaker(peerUser.id)
+                  setIcebreaker(res.data.data ?? null)
+                } finally {
+                  setIcebreakerLoading(false)
+                }
+              }}
+              compact
+            />
+          </Box>
+        )}
+
         {loadingMessages && messages.length === 0 && (
           <Box display="flex" justifyContent="center" pt={4}>
             <CircularProgress size={28} />

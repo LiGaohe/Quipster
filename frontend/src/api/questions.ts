@@ -4,6 +4,7 @@ import type {
   PaginatedResponse,
   Question,
   Answer,
+  AiAnswer,
   CreateQuestionDto,
   GetQuestionsParams,
 } from '@/types'
@@ -20,6 +21,12 @@ export const questionsApi = {
 
   getAnswers: (questionId: string) =>
     http.get<ApiResponse<Answer[]>>(`/questions/${questionId}/answers`),
+
+  getAiAnswer: (questionId: string) =>
+    http.get<ApiResponse<AiAnswer | null>>(`/questions/${questionId}/ai-answer`),
+
+  generateAiAnswer: (questionId: string, force = false) =>
+    http.post<ApiResponse<AiAnswer>>(`/questions/${questionId}/ai-answer${force ? '?force=true' : ''}`),
 
   submitAnswer: (questionId: string, content: string) =>
     http.post<ApiResponse<Answer>>(`/questions/${questionId}/answers`, { content }),

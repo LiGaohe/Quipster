@@ -16,7 +16,8 @@ import {
 import { Close, Favorite, FavoriteBorder } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { matchesApi } from '@/api/matches'
-import type { MatchUser } from '@/types'
+import IcebreakerPanel from '@/components/chat/IcebreakerPanel'
+import type { IcebreakerSuggestion, MatchUser } from '@/types'
 
 const CARD_TRANSITION = 'transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease'
 
@@ -31,13 +32,18 @@ const MatchPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false)
   const [slideDir, setSlideDir] = useState<SlideDir>(null)
   const [matchedUser, setMatchedUser] = useState<MatchUser | null>(null)
+  const [matchedConversationId, setMatchedConversationId] = useState<string | number | null>(null)
+  const [icebreaker, setIcebreaker] = useState<IcebreakerSuggestion | null>(null)
+  const [icebreakerLoading, setIcebreakerLoading] = useState(false)
   const [matchDialogOpen, setMatchDialogOpen] = useState(false)
   const [noMore, setNoMore] = useState(false)
   const [page, setPage] = useState(1)
   const [isFetching, setIsFetching] = useState(false)
+  const isFetchingRef = useRef(false)
 
   const loadMore = useCallback(async (nextPage: number) => {
-    if (isFetching) return
+    if (isFetchingRef.current) return
+    isFetchingRef.current = true
     setIsFetching(true)
     setLoading(true)
     try {
@@ -54,6 +60,7 @@ const MatchPage: React.FC = () => {
     } finally {
       setLoading(false)
       setIsFetching(false)
+      isFetchingRef.current = false
     }
   }, [])
 
@@ -83,6 +90,8 @@ const MatchPage: React.FC = () => {
       })
       if (res.data.is_matched) {
         setMatchedUser(current)
+        setMatchedConversationId(res.data.conversation_id ?? null)
+        setIcebreaker(res.data.icebreaker ?? null)
         setMatchDialogOpen(true)
       }
     } catch {
@@ -104,6 +113,19 @@ const MatchPage: React.FC = () => {
   }
 
   const isExhausted = !loading && (noMore || currentIndex >= queue.length)
+
+  const refreshIcebreaker = useCallback(async () => {
+    if (!matchedUser) return
+    setIcebreakerLoading(true)
+    try {
+      const res = await matchesApi.getIcebreaker(matchedUser.user_id)
+      setIcebreaker(res.data.data ?? null)
+    } catch {
+      setIcebreaker(null)
+    } finally {
+      setIcebreakerLoading(false)
+    }
+  }, [matchedUser])
 
   return (
     <Container maxWidth="xs" sx={{ py: 4 }}>
@@ -328,6 +350,14 @@ const MatchPage: React.FC = () => {
               </Typography>
             </>
           )}
+          <Box mt={2} textAlign="left">
+            <IcebreakerPanel
+              icebreaker={icebreaker}
+              loading={icebreakerLoading}
+              onRefresh={refreshIcebreaker}
+              compact
+            />
+          </Box>
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
@@ -338,7 +368,7 @@ const MatchPage: React.FC = () => {
             variant="contained"
             onClick={() => {
               setMatchDialogOpen(false)
-              navigate('/chat')
+              navigate(matchedConversationId ? `/chat/${matchedConversationId}` : '/chat')
             }}
           >
             去聊天

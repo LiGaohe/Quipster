@@ -2,6 +2,7 @@
 import { createAdminClient } from '../_shared/supabase.ts'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { ok, err } from '../_shared/response.ts'
+import { analyzeContentModeration, submitModerationReport } from '../_shared/content-moderation.ts'
 
 interface AuthUser { id: string; email: string }
 
@@ -55,6 +56,10 @@ Deno.serve(async (req: Request) => {
       if (message_type !== 'text' && message_type !== 'image') return err('message_type 必须为 text 或 image', 400)
 
       const supabase = createAdminClient()
+      const moderation = await analyzeContentModeration({
+        target_type: 'message',
+        content: content.trim(),
+      })
 
       let conversationId: number
 
@@ -124,13 +129,37 @@ Deno.serve(async (req: Request) => {
           sender_user_id: senderId,
           content: content.trim(),
           message_type,
+          audit_status: moderation.audit_status,
+          audited_by: moderation.needs_admin_review ? null : senderId,
+          audited_at: moderation.needs_admin_review ? null : new Date().toISOString(),
         })
-        .select('id, sender_user_id, content, message_type, created_at')
+        .select('id, sender_user_id, content, message_type, audit_status, created_at')
         .single()
 
       if (msgErr) return err(msgErr.message, 500)
 
-      return ok({ success: true, data: { ...newMsg, conversation_id: conversationId } }, 201)
+      if (moderation.needs_admin_review) {
+        await submitModerationReport(
+          supabase,
+          senderId,
+          { target_type: 'message', target_id: newMsg.id },
+          moderation.summary,
+          [
+            `风险等级：${moderation.risk_level}`,
+            `命中关键词：${moderation.matched_keywords.join('、') || '无'}`,
+            ...moderation.reasons,
+          ]
+        )
+      }
+
+      return ok({
+        success: true,
+        data: {
+          ...newMsg,
+          conversation_id: conversationId,
+          audit_status: moderation.audit_status,
+        },
+      }, 201)
     }
 
     return err('Method Not Allowed', 405)

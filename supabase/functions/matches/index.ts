@@ -1,5 +1,9 @@
 // @ts-ignore Deno
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { handleCors } from '../_shared/cors.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { generateIcebreakerSuggestions } from '../_shared/chat-icebreaker.ts'
 
 const SUPABASE_URL: string = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY: string = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -10,68 +14,55 @@ function createAdminClient(): SupabaseClient {
   })
 }
 
-const corsHeaders: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-auth',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-}
+type MatchAction = 'like' | 'dislike' | 'pass' | 'super_like'
 
-function handleCors(req: Request): Response | null {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders, status: 200 })
+function normalizeAction(action: string): MatchAction | null {
+  if (action === 'like' || action === 'dislike' || action === 'pass' || action === 'super_like') {
+    return action
+  }
   return null
 }
 
-function ok(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+function storageAction(action: MatchAction): 'like' | 'pass' | 'super_like' {
+  if (action === 'dislike') return 'pass'
+  return action
 }
 
-function err(message: string, status = 400): Response {
-  return new Response(JSON.stringify({ error: message }), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-}
+async function findExistingConversation(
+  supabase: SupabaseClient,
+  userA: string,
+  userB: string
+): Promise<number | null> {
+  const { data: rowsA, error: errA } = await supabase
+    .from('conversation_members')
+    .select('conversation_id')
+    .eq('user_id', userA)
 
-function buildPagination(page: number, limit: number, total: number) {
-  return { page, limit, total, pages: Math.ceil(total / limit) }
-}
+  if (errA) throw errA
 
-function parsePagination(url: URL): { page: number; limit: number; offset: number } {
-  const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
-  const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') ?? '20', 10) || 20))
-  return { page, limit, offset: (page - 1) * limit }
-}
+  const { data: rowsB, error: errB } = await supabase
+    .from('conversation_members')
+    .select('conversation_id')
+    .eq('user_id', userB)
 
-interface AuthUser { id: string; email: string }
+  if (errB) throw errB
 
-function extractToken(req: Request): string | null {
-  const auth = req.headers.get('Authorization') ?? req.headers.get('authorization')
-  if (!auth?.startsWith('Bearer ')) return null
-  return auth.slice(7).trim()
-}
+  const idsA = new Set((rowsA ?? []).map((row: { conversation_id: number }) => row.conversation_id))
+  const sharedIds = (rowsB ?? [])
+    .map((row: { conversation_id: number }) => row.conversation_id)
+    .filter((conversationId: number) => idsA.has(conversationId))
 
-async function getAuthUser(req: Request): Promise<AuthUser | null> {
-  const token = extractToken(req)
-  if (!token) return null
-  try {
-    const admin = createAdminClient()
-    const { data: { user }, error } = await admin.auth.getUser(token)
-    if (error || !user) return null
-    return { id: user.id, email: user.email! }
-  } catch { return null }
-}
+  if (sharedIds.length === 0) return null
 
-async function requireAuth(req: Request): Promise<[AuthUser, null] | [null, Response]> {
-  const user = await getAuthUser(req)
-  if (!user) {
-    return [null, new Response(JSON.stringify({ error: '未认证，请先登录' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })]
-  }
-  return [user, null]
-}
+  const { data: conversationRows, error: convErr } = await supabase
+    .from('conversations')
+    .select('id, is_group')
+    .in('id', sharedIds)
+    .eq('is_group', false)
 
-function getPathSegments(url: URL, functionName: string): string[] {
-  const pathname = url.pathname
-  const prefix = `/${functionName}`
-  const rest = pathname.startsWith(prefix) ? pathname.slice(prefix.length) : pathname
-  return rest.split('/').filter(Boolean)
+  if (convErr) throw convErr
+
+  return conversationRows?.[0]?.id ?? null
 }
 
 Deno.serve(async (req: Request) => {
@@ -82,6 +73,19 @@ Deno.serve(async (req: Request) => {
   const method = req.method
   const segments = getPathSegments(url, 'matches')
 
+  const debugInfo = {
+    method,
+    pathname: url.pathname,
+    segments,
+    segmentsLength: segments.length,
+    conditions: {
+      GET_segments0: method === 'GET' && segments.length === 0,
+      POST_segments0: method === 'POST' && segments.length === 0,
+      GET_icebreaker: method === 'GET' && segments.length === 1 && segments[0] === 'icebreaker',
+    }
+  }
+  console.log('[matches] debug:', JSON.stringify(debugInfo, null, 2))
+
   try {
     if (method === 'GET' && segments.length === 0) {
       const [user, authResp] = await requireAuth(req)
@@ -91,7 +95,6 @@ Deno.serve(async (req: Request) => {
       const { page, limit, offset } = parsePagination(url)
       const supabase = createAdminClient()
 
-      // 1. 获取我的标签
       const { data: myTags, error: myTagErr } = await supabase
         .from('user_tags')
         .select('tag_id, tags(name)')
@@ -104,7 +107,6 @@ Deno.serve(async (req: Request) => {
         .map((row: { tags: { name: string } | null }) => row.tags?.name)
         .filter(Boolean) as string[]
 
-      // 2. 查询我已经操作过的用户（使用 matches 表）
       const { data: actionedRows, error: actionedErr } = await supabase
         .from('matches')
         .select('target_user_id')
@@ -114,12 +116,11 @@ Deno.serve(async (req: Request) => {
 
       const excludedIds: string[] = [me, ...(actionedRows ?? []).map((r: { target_user_id: string }) => r.target_user_id)]
 
-      // 3. 查询候选用户（visibility=1 或 NULL，排除已操作）
       const { data: candidates, error: candErr, count } = await supabase
         .from('users')
         .select('id, nickname, avatar_url, major', { count: 'exact' })
         .or('visibility.eq.1,visibility.is.null')
-        .not('id', 'in', `(${excludedIds.map(id => `"${id}"`).join(',')})`)
+        .not('id', 'in', `(${excludedIds.map((id) => `"${id}"`).join(',')})`)
         .range(offset, offset + limit - 1)
 
       if (candErr) {
@@ -134,7 +135,6 @@ Deno.serve(async (req: Request) => {
       }
 
       const candidateList = candidates ?? []
-
       if (candidateList.length === 0) {
         return ok({
           success: true,
@@ -143,18 +143,12 @@ Deno.serve(async (req: Request) => {
         })
       }
 
-      // 4. 对每个候选用户计算共同标签和匹配分数
-      // 匹配算法：专业权重30% + 标签权重70%
-      // - 专业相同：专业分 = 30分
-      // - 标签匹配：标签分 = (共同标签数 / max(用户A标签数, 用户B标签数)) × 70
-      // - 总分 = 专业分 + 标签分
-
-      // 获取当前用户的专业信息
       const { data: myProfile } = await supabase
         .from('users')
         .select('major')
         .eq('id', me)
         .single()
+
       const myMajor = myProfile?.major ?? ''
 
       const enriched = await Promise.all(
@@ -169,19 +163,12 @@ Deno.serve(async (req: Request) => {
             .map((r: { tags: { name: string } | null }) => r.tags?.name)
             .filter(Boolean) as string[]
 
-          const commonTagNames = myTagNames.filter(name => candTagNames.includes(name))
-
-          // 计算专业匹配分（权重30%）
+          const commonTagNames = myTagNames.filter((name) => candTagNames.includes(name))
           const majorScore = (myMajor && candidate.major && myMajor === candidate.major) ? 30 : 0
-
-          // 计算标签匹配分（权重70%）
           const denominator = Math.max(myTagIds.length, candTagIds.length)
           const tagScore = denominator > 0
             ? Math.round((commonTagNames.length / denominator) * 70)
             : 0
-
-          // 总匹配分
-          const match_score = majorScore + tagScore
 
           return {
             user_id: candidate.id,
@@ -189,7 +176,7 @@ Deno.serve(async (req: Request) => {
             avatar_url: candidate.avatar_url,
             major: candidate.major,
             common_tags: commonTagNames,
-            match_score,
+            match_score: majorScore + tagScore,
           }
         })
       )
@@ -201,6 +188,29 @@ Deno.serve(async (req: Request) => {
         data: enriched,
         pagination: buildPagination(page, limit, count ?? 0),
       })
+    }
+
+    if (method === 'GET' && segments.length === 1 && segments[0] === 'icebreaker') {
+      const [user, authResp] = await requireAuth(req)
+      if (authResp) return authResp
+      const me = user!.id
+
+      const peerUserId = url.searchParams.get('peer_user_id')?.trim()
+      if (!peerUserId) return err('peer_user_id 不能为空', 400)
+      if (peerUserId === me) return err('不能为自己生成破冰建议', 400)
+
+      const supabase = createAdminClient()
+      const { data: peerExists, error: peerErr } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', peerUserId)
+        .maybeSingle()
+
+      if (peerErr) return err(peerErr.message, 500)
+      if (!peerExists) return err('用户不存在', 404)
+
+      const icebreaker = await generateIcebreakerSuggestions(supabase, me, peerUserId)
+      return ok({ success: true, data: icebreaker })
     }
 
     if (method === 'POST' && segments.length === 0) {
@@ -216,28 +226,30 @@ Deno.serve(async (req: Request) => {
       }
 
       const { target_user_id, action } = body
+      const normalizedAction = action ? normalizeAction(action) : null
 
       if (!target_user_id) return err('target_user_id 不能为空', 400)
-      if (action !== 'like' && action !== 'dislike') {
-        return err('action 必须为 like 或 dislike', 400)
-      }
+      if (!normalizedAction) return err('action 必须为 like、dislike、pass 或 super_like', 400)
       if (target_user_id === me) return err('不能对自己操作', 400)
 
       const supabase = createAdminClient()
+      const storedAction = storageAction(normalizedAction)
+      const now = new Date().toISOString()
 
-      // 使用 matches 表记录操作
       const { error: upsertErr } = await supabase
         .from('matches')
         .upsert(
-          { user_id: me, target_user_id, action },
+          { user_id: me, target_user_id, action: storedAction },
           { onConflict: 'user_id,target_user_id' }
         )
 
       if (upsertErr) return err(upsertErr.message, 500)
 
-      // 检查是否互相喜欢
       let isMatched = false
-      if (action === 'like') {
+      let conversationId: number | null = null
+      let icebreaker = null
+
+      if (storedAction === 'like') {
         const { data: reverseMatch, error: reverseErr } = await supabase
           .from('matches')
           .select('id')
@@ -247,35 +259,60 @@ Deno.serve(async (req: Request) => {
           .maybeSingle()
 
         if (!reverseErr && reverseMatch) {
-        isMatched = true
+          isMatched = true
 
-        await supabase
-          .from('matches')
-          .update({ is_matched: true, matched_at: new Date().toISOString() })
-          .eq('user_id', me)
-          .eq('target_user_id', target_user_id)
-
-        const { data: newConv, error: convErr } = await supabase
-          .from('conversations')
-          .insert({
-            is_group: false,
-            creator_user_id: me,
-          })
-          .select('id')
-          .single()
-
-        if (!convErr && newConv) {
           await supabase
-            .from('conversation_members')
-            .insert([
-              { conversation_id: newConv.id, user_id: me, role: 'member' },
-              { conversation_id: newConv.id, user_id: target_user_id, role: 'member' },
-            ])
+            .from('matches')
+            .update({ is_matched: true, matched_at: now })
+            .eq('user_id', me)
+            .eq('target_user_id', target_user_id)
+
+          await supabase
+            .from('matches')
+            .update({ is_matched: true, matched_at: now })
+            .eq('user_id', target_user_id)
+            .eq('target_user_id', me)
+
+          conversationId = await findExistingConversation(supabase, me, target_user_id)
+
+          if (!conversationId) {
+            const { data: newConv, error: convErr } = await supabase
+              .from('conversations')
+              .insert({
+                is_group: false,
+                creator_user_id: me,
+              })
+              .select('id')
+              .single()
+
+            if (!convErr && newConv) {
+              conversationId = newConv.id
+              const { error: memberErr } = await supabase
+                .from('conversation_members')
+                .insert([
+                  { conversation_id: conversationId, user_id: me, role: 'member' },
+                  { conversation_id: conversationId, user_id: target_user_id, role: 'member' },
+                ])
+
+              if (memberErr) console.error('[matches] create members failed:', memberErr)
+            }
+          }
+
+          try {
+            icebreaker = await generateIcebreakerSuggestions(supabase, me, target_user_id)
+          } catch (error) {
+            console.error('[matches] icebreaker generation failed:', error)
+          }
         }
       }
-    }
 
-      return ok({ success: true, is_matched: isMatched })
+      return ok({
+        success: true,
+        is_matched: isMatched,
+        message: isMatched ? '匹配成功' : '操作已记录',
+        conversation_id: conversationId,
+        icebreaker,
+      })
     }
 
     return err('Not Found', 404)

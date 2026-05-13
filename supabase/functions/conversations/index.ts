@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
 
       let query = supabase
         .from('messages')
-        .select('id, conversation_id, sender_user_id, content, message_type, status, created_at', { count: 'exact' })
+        .select('id, conversation_id, sender_user_id, content, message_type, status, audit_status, created_at', { count: 'exact' })
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)

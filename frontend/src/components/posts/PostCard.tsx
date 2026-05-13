@@ -31,6 +31,7 @@ import {
   ChatBubbleOutline,
   FlagOutlined,
   Send,
+  WarningAmber,
 } from '@mui/icons-material'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
@@ -52,6 +53,20 @@ const REPORT_REASONS = [
   '人身攻击',
   '其他违规',
 ]
+
+const auditLabelMap: Record<string, string> = {
+  pending: '待审',
+  passed: '通过',
+  flagged: '已标记',
+  rejected: '已拒绝',
+}
+
+const auditColorMap: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
+  pending: 'default',
+  passed: 'success',
+  flagged: 'warning',
+  rejected: 'error',
+}
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const navigate = useNavigate()
@@ -192,6 +207,15 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             {post.content}
           </Typography>
 
+          {post.audit_status && post.audit_status !== 'passed' && (
+            <Box mt={1} display="flex" alignItems="center" gap={1}>
+              <WarningAmber fontSize="small" color="warning" />
+              <Typography variant="caption" color="warning.main">
+                风险标记：{auditLabelMap[post.audit_status] ?? post.audit_status}
+              </Typography>
+            </Box>
+          )}
+
           {post.images && post.images.length > 0 && (
             <Box sx={{ mt: 1.5 }}>
               <ImageList
@@ -278,6 +302,14 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                             <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                               {comment.content}
                             </Typography>
+                            {comment.audit_status && comment.audit_status !== 'passed' && (
+                              <Box mt={0.5} display="flex" alignItems="center" gap={0.5}>
+                                <WarningAmber fontSize="inherit" color="warning" />
+                                <Typography variant="caption" color="warning.main">
+                                  风险标记：{auditLabelMap[comment.audit_status] ?? comment.audit_status}
+                                </Typography>
+                              </Box>
+                            )}
                             <Typography variant="caption" color="text.secondary" display="block" mt={0.25}>
                               {format(new Date(comment.created_at), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
                             </Typography>

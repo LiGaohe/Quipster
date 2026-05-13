@@ -3,6 +3,7 @@ import { handleCors } from '../_shared/cors.ts'
 import { createAdminClient } from '../_shared/supabase.ts'
 import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
 import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { generateAndStoreAiAnswer, getStoredAiAnswer, type QuestionContext } from '../_shared/ai-qa.ts'
 
 // @ts-ignore Deno
 Deno.serve(async (req: Request) => {
@@ -15,6 +16,7 @@ Deno.serve(async (req: Request) => {
 
   const hasId = segments.length >= 1 && segments[0] !== ''
   const isAnswersRoute = hasId && segments[1] === 'answers'
+  const isAiAnswerRoute = hasId && segments[1] === 'ai-answer'
 
   try {
     if (method === 'GET' && !hasId) {
@@ -30,10 +32,39 @@ Deno.serve(async (req: Request) => {
         .from('questions')
         .select('*', { count: 'exact' })
 
+      const status = url.searchParams.get('status')
+      const tagId = url.searchParams.get('tag_id')
+
       if (sort === 'hotests') {
         query = query.order('created_at', { ascending: false })
       } else {
         query = query.order('created_at', { ascending: false })
+      }
+
+      if (status === 'open') {
+        query = query.eq('is_solved', false)
+      } else if (status === 'closed') {
+        query = query.eq('is_solved', true)
+      }
+
+      if (tagId) {
+        const { data: taggedRows, error: tagFilterErr } = await supabase
+          .from('question_tags')
+          .select('question_id')
+          .eq('tag_id', Number(tagId))
+
+        if (tagFilterErr) return err(tagFilterErr.message, 500)
+
+        const questionIds = (taggedRows ?? []).map((row: { question_id: string }) => row.question_id)
+        if (questionIds.length === 0) {
+          return ok({
+            success: true,
+            data: [],
+            pagination: buildPagination(page, limit, 0),
+          })
+        }
+
+        query = query.in('id', questionIds)
       }
 
       query = query.range(offset, offset + limit - 1)
@@ -91,6 +122,7 @@ Deno.serve(async (req: Request) => {
             status: q.is_solved ? 'closed' : 'open',
             answer_count: answerCount ?? 0,
             has_accepted_answer: !!acceptedAnswer,
+            has_ai_answer: !!q.has_ai_answer,
             user: profile ?? { id: q.user_id, nickname: null, avatar_url: null },
             created_at: q.created_at,
           }
@@ -144,10 +176,86 @@ Deno.serve(async (req: Request) => {
         if (tagErr) console.error('Failed to insert question tags:', tagErr.message)
       }
 
+      const aiQuestion: QuestionContext = {
+        id: String(questionId),
+        title: title.trim(),
+        content: content.trim(),
+        category: category ?? null,
+      }
+
+      EdgeRuntime.waitUntil((async () => {
+        try {
+          await generateAndStoreAiAnswer(supabase, aiQuestion)
+        } catch (generationErr) {
+          console.error('Auto AI answer generation failed:', generationErr)
+        }
+      })())
+
       return ok({ success: true, message: '问题发布成功', data: { id: questionId } }, 201)
     }
 
-    if (method === 'GET' && hasId && !isAnswersRoute) {
+    if (method === 'GET' && isAiAnswerRoute) {
+      const [user, authResp] = await requireAuth(req)
+      if (authResp) return authResp
+
+      const questionId = segments[0]
+      const supabase = createAdminClient()
+
+      const { data: question, error: qErr } = await supabase
+        .from('questions')
+        .select('id, title, content, category')
+        .eq('id', questionId)
+        .maybeSingle()
+
+      if (qErr) return err(qErr.message, 500)
+      if (!question) return err('问题不存在或已删除', 404)
+
+      const aiAnswer = await getStoredAiAnswer(supabase, questionId)
+
+      return ok({
+        success: true,
+        data: aiAnswer,
+      })
+    }
+
+    if (method === 'POST' && isAiAnswerRoute) {
+      const [user, authResp] = await requireAuth(req)
+      if (authResp) return authResp
+
+      const questionId = segments[0]
+      const force = url.searchParams.get('force') === 'true'
+      const supabase = createAdminClient()
+
+      const { data: question, error: qErr } = await supabase
+        .from('questions')
+        .select('id, title, content, category')
+        .eq('id', questionId)
+        .maybeSingle()
+
+      if (qErr) return err(qErr.message, 500)
+      if (!question) return err('问题不存在或已删除', 404)
+
+      const result = await generateAndStoreAiAnswer(supabase, {
+        id: String(question.id),
+        title: question.title,
+        content: question.content ?? '',
+        category: question.category ?? null,
+      }, { force })
+
+      return ok({
+        success: true,
+        data: result.answer,
+        meta: {
+          cached: result.cached,
+          model: result.model,
+          keywords: result.keywords,
+          references: result.references,
+          used_fallback: result.used_fallback,
+        },
+      })
+    }
+
+    if (method === 'GET' && hasId && !isAnswersRoute && !isAiAnswerRoute) {
       const [user, authResp] = await requireAuth(req)
       if (authResp) return authResp
 
@@ -200,6 +308,7 @@ Deno.serve(async (req: Request) => {
         status: q.is_solved ? 'closed' : 'open',
         answer_count: answerCount ?? 0,
         has_accepted_answer: !!acceptedAnswer,
+        has_ai_answer: !!q.has_ai_answer,
         user: profile ?? { id: q.user_id, nickname: null, avatar_url: null },
         created_at: q.created_at,
       }

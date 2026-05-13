@@ -3,6 +3,7 @@ import {
   Avatar,
   Box,
   Button,
+  Alert,
   Chip,
   CircularProgress,
   Container,
@@ -11,14 +12,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { ArrowBack, CheckCircle, Send } from '@mui/icons-material'
+import { ArrowBack, AutoAwesome, CheckCircle, Refresh, Send } from '@mui/icons-material'
 import { format, formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { questionsApi } from '@/api/questions'
 import { useAppSelector } from '@/store/hooks'
-import type { Answer, Question } from '@/types'
+import type { AiAnswer, Answer, Question } from '@/types'
 
 const QuestionDetailPage: React.FC = () => {
   const { questionId } = useParams<{ questionId: string }>()
@@ -26,12 +27,15 @@ const QuestionDetailPage: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user)
 
   const [question, setQuestion] = useState<Question | null>(null)
+  const [aiAnswer, setAiAnswer] = useState<AiAnswer | null>(null)
   const [answers, setAnswers] = useState<Answer[]>([])
   const [loadingQuestion, setLoadingQuestion] = useState(true)
+  const [loadingAiAnswer, setLoadingAiAnswer] = useState(false)
   const [loadingAnswers, setLoadingAnswers] = useState(false)
   const [answerText, setAnswerText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
+  const [generatingAiAnswer, setGeneratingAiAnswer] = useState(false)
 
   const formatTime = (iso: string) => {
     try {
@@ -83,24 +87,57 @@ const QuestionDetailPage: React.FC = () => {
     load()
   }, [questionId])
 
+  useEffect(() => {
+    if (!questionId) return
+    const load = async () => {
+      try {
+        setLoadingAiAnswer(true)
+        const res = await questionsApi.getAiAnswer(questionId)
+        setAiAnswer(res.data.data ?? null)
+      } catch {
+        setAiAnswer(null)
+      } finally {
+        setLoadingAiAnswer(false)
+      }
+    }
+    load()
+  }, [questionId])
+
+  const reloadAnswers = async () => {
+    if (!questionId) return
+    const res = await questionsApi.getAnswers(questionId)
+    setAnswers(res.data.data ?? [])
+  }
+
   const handleSubmitAnswer = async () => {
     if (!questionId || !question) return
     if (!currentUser) { toast.info('请先登录'); return }
     if (!answerText.trim()) return
     try {
       setSubmitting(true)
-      const res = await questionsApi.submitAnswer(questionId, answerText.trim())
-      const newAnswer = res.data.data
-      if (newAnswer) {
-        setAnswers((prev) => [...prev, newAnswer])
-        setQuestion({ ...question, answer_count: question.answer_count + 1 })
-      }
+      await questionsApi.submitAnswer(questionId, answerText.trim())
+      await reloadAnswers()
+      setQuestion({ ...question, answer_count: question.answer_count + 1 })
       setAnswerText('')
       toast.success('回答成功')
     } catch {
       toast.error('提交失败，请重试')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleGenerateAiAnswer = async (force = false) => {
+    if (!questionId) return
+    try {
+      setGeneratingAiAnswer(true)
+      const res = await questionsApi.generateAiAnswer(questionId, force)
+      setAiAnswer(res.data.data ?? null)
+      toast.success(force ? 'AI 参考回答已刷新' : 'AI 参考回答已生成')
+    } catch {
+      toast.error('AI 参考回答生成失败，请稍后重试')
+    } finally {
+      setGeneratingAiAnswer(false)
     }
   }
 
@@ -194,6 +231,56 @@ const QuestionDetailPage: React.FC = () => {
             </Typography>
           </Box>
         </Box>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'primary.light', bgcolor: 'primary.50' }}>
+        <Box display="flex" alignItems="flex-start" justifyContent="space-between" gap={2} mb={1.5}>
+          <Box>
+            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+              <AutoAwesome color="primary" fontSize="small" />
+              <Typography variant="h6" fontWeight={700}>AI 参考回答</Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              基于校园资料库检索生成，仅供参考，不替代人工回答和学校最新通知。
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            variant={aiAnswer ? 'outlined' : 'contained'}
+            startIcon={
+              generatingAiAnswer ? (
+                <CircularProgress size={14} color="inherit" />
+              ) : aiAnswer ? (
+                <Refresh />
+              ) : (
+                <AutoAwesome />
+              )
+            }
+            onClick={() => handleGenerateAiAnswer(!!aiAnswer)}
+            disabled={generatingAiAnswer}
+          >
+            {aiAnswer ? '重新生成' : '生成回答'}
+          </Button>
+        </Box>
+
+        {loadingAiAnswer ? (
+          <Box display="flex" justifyContent="center" py={2}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : aiAnswer ? (
+          <>
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
+              {aiAnswer.content}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1.5 }}>
+              生成时间：{formatTime(aiAnswer.created_at)}
+            </Typography>
+          </>
+        ) : (
+          <Alert severity="info" sx={{ mt: 1 }}>
+            当前还没有生成 AI 参考回答。你可以手动生成一份，供提问者和浏览者先做参考。
+          </Alert>
+        )}
       </Paper>
 
       {/* Answers */}

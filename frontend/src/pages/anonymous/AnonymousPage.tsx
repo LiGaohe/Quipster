@@ -23,7 +23,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import { Add, Comment, Favorite, FavoriteBorder } from '@mui/icons-material'
+import { Add, Comment, Favorite, FavoriteBorder, WarningAmber } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
@@ -32,6 +32,21 @@ import { anonymousApi } from '@/api/anonymous'
 import { tagsApi } from '@/api/tags'
 import { useAppSelector } from '@/store/hooks'
 import type { AnonymousPost, CreateAnonymousPostDto, GetAnonymousPostsParams, Tag } from '@/types'
+
+const emotionChipColorMap: Record<string, 'success' | 'default' | 'warning' | 'error'> = {
+  positive: 'success',
+  neutral: 'default',
+  anxiety: 'warning',
+  stress: 'warning',
+  sadness: 'error',
+}
+
+const auditLabelMap: Record<string, string> = {
+  pending: '待审',
+  passed: '通过',
+  flagged: '已标记',
+  rejected: '已拒绝',
+}
 
 // ─── Create Post Dialog ───────────────────────────────────────────────────────
 
@@ -181,6 +196,25 @@ const AnonPostCard: React.FC<PostCardProps> = ({ post, onLikeChange }) => {
               {post.tags.map((tag) => (
                 <Chip key={tag.id} label={tag.name} size="small" variant="outlined" />
               ))}
+            </Box>
+          )}
+
+          {post.emotion_type && post.emotion_label && (
+            <Box mb={1.5}>
+              <Chip
+                label={`情绪：${post.emotion_label}`}
+                size="small"
+                color={emotionChipColorMap[post.emotion_type] ?? 'default'}
+              />
+            </Box>
+          )}
+
+          {post.audit_status && post.audit_status !== 'passed' && (
+            <Box mb={1.5} display="flex" alignItems="center" gap={0.75}>
+              <WarningAmber fontSize="small" color="warning" />
+              <Typography variant="caption" color="warning.main">
+                风险标记：{auditLabelMap[post.audit_status] ?? post.audit_status}
+              </Typography>
             </Box>
           )}
 

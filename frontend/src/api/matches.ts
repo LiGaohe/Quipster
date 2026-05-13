@@ -4,6 +4,7 @@ import type {
   MatchUser,
   MatchActionDto,
   MatchActionResponse,
+  IcebreakerSuggestion,
 } from '@/types'
 
 export const matchesApi = {
@@ -12,4 +13,10 @@ export const matchesApi = {
 
   recordAction: (dto: MatchActionDto) =>
     http.post<MatchActionResponse>('/matches', dto),
+
+  getIcebreaker: (peerUserId: string) =>
+    http.get<ApiResponse<IcebreakerSuggestion>>('/matches/icebreaker', {
+      params: { peer_user_id: peerUserId },
+      timeout: 60000,
+    }),
 }

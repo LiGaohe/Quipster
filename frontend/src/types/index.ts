@@ -141,6 +141,18 @@ export interface MatchActionResponse {
   success: boolean
   is_matched: boolean
   message: string
+  conversation_id?: string | number | null
+  icebreaker?: IcebreakerSuggestion | null
+}
+
+export interface IcebreakerSuggestion {
+  common_tags: string[]
+  opening_lines: string[]
+  topic_suggestions: string[]
+  interaction_ideas: string[]
+  mini_games: string[]
+  used_ai: boolean
+  model: string | null
 }
 
 // ============================================================
@@ -165,6 +177,7 @@ export interface Message {
   content: string
   message_type: 'text' | 'image'
   status: 'sent' | 'delivered' | 'read'
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
   created_at: string
 }
 
@@ -190,6 +203,7 @@ export interface Post {
   user: UserBasic
   content: string
   images?: string[]
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
   like_count: number
   comment_count: number
   is_liked: boolean
@@ -200,6 +214,7 @@ export interface Comment {
   id: string
   user: UserBasic
   content: string
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
   created_at: string
 }
 
@@ -301,6 +316,12 @@ export interface AnonymousPost {
   title: string
   content: string
   tags?: Array<{ id: number; name: string }>
+  emotion_type?: 'positive' | 'neutral' | 'anxiety' | 'stress' | 'sadness' | null
+  emotion_label?: string | null
+  emotion_score?: number | null
+  support_resources?: string[]
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  is_hot?: boolean
   like_count: number
   comment_count: number
   is_liked: boolean
@@ -310,6 +331,7 @@ export interface AnonymousPost {
 export interface AnonymousComment {
   id: string
   content: string
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
   created_at: string
 }
 
@@ -317,6 +339,16 @@ export interface CreateAnonymousPostDto {
   title: string
   content: string
   tags?: number[]
+}
+
+export interface AnonymousSupportInfo {
+  emotion_type?: 'positive' | 'neutral' | 'anxiety' | 'stress' | 'sadness' | null
+  emotion_label?: string | null
+  emotion_score?: number | null
+  support_resources: string[]
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  support_posts: Array<{ id: string; title: string }>
+  support_events: Array<{ id: string; title: string; start_time?: string | null }>
 }
 
 export interface GetAnonymousPostsParams {
@@ -335,8 +367,11 @@ export interface Question {
   title: string
   content: string
   tags?: Array<{ id: number; name: string }>
+  category?: string
+  status?: 'open' | 'closed'
   answer_count: number
   has_accepted_answer: boolean
+  has_ai_answer?: boolean
   user: UserBasic
   created_at: string
 }
@@ -346,6 +381,14 @@ export interface Answer {
   content: string
   user: UserBasic
   is_accepted: boolean
+  like_count?: number
+  created_at: string
+}
+
+export interface AiAnswer {
+  id: string
+  question_id: string
+  content: string
   created_at: string
 }
 
@@ -371,7 +414,6 @@ export interface StudyTask {
   id: string
   title: string
   description?: string
-  tags: Array<{ id: number; name: string }>
   target_count: number
   current_count: number
   creator: UserBasic
@@ -382,12 +424,10 @@ export interface StudyTask {
 export interface CreateStudyTaskDto {
   title: string
   description?: string
-  tags?: number[]
   target_count: number
 }
 
 export interface GetStudyTasksParams {
-  tag_id?: number
   status?: 'open' | 'closed'
   page?: number
   limit?: number

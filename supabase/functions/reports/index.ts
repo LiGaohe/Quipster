@@ -7,9 +7,9 @@ import { requireAuth } from '../_shared/auth.ts'
 const VALID_TARGET_TYPES = ['user', 'post', 'comment', 'message'] as const
 type TargetType = typeof VALID_TARGET_TYPES[number]
 
-/** 验证字符串是否为合法 UUID v4 格式 */
-function isValidUUID(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+/** 验证字符串是否可被当作数值 ID 或 UUID 使用 */
+function isValidTargetId(value: string): boolean {
+  return /^\d+$/.test(value) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
 }
 
 // @ts-ignore Deno
@@ -49,9 +49,9 @@ Deno.serve(async (req: Request) => {
         )
       }
 
-      // 验证 target_id 为合法 UUID
-      if (!target_id || !isValidUUID(target_id)) {
-        return err('target_id 必须是合法的 UUID', 400)
+      // 验证 target_id 为合法数值 ID 或 UUID
+      if (!target_id || !isValidTargetId(target_id)) {
+        return err('target_id 必须是合法的 ID', 400)
       }
 
       // 验证 reason 非空
@@ -64,9 +64,9 @@ Deno.serve(async (req: Request) => {
       const { error: insertErr } = await supabase
         .from('reports')
         .insert({
-          reporter_id: me,
+          reporter_user_id: me,
           target_type: target_type as TargetType,
-          target_id,
+          target_id: Number(target_id),
           reason: reason.trim(),
           description: description?.trim() ?? null,
         })

@@ -44,9 +44,9 @@ Deno.serve(async (req: Request) => {
         .range(offset, offset + limit - 1)
 
       if (statusFilter === 'open') {
-        query = query.eq('status', 'open')
+        query = query.eq('status', 'upcoming')
       } else if (statusFilter === 'closed') {
-        query = query.neq('status', 'open')
+        query = query.neq('status', 'upcoming')
       }
 
       const { data: tasks, error: tErr, count } = await query
@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
             target_count: task.max_members ?? 2,
             current_count: currentCount ?? 0,
             creator: creator ?? { id: task.creator_user_id, nickname: null, avatar_url: null },
-            status: task.status ?? 'open',
+            status: task.status ?? 'upcoming',
             created_at: task.created_at,
           }
         })
@@ -123,7 +123,9 @@ Deno.serve(async (req: Request) => {
           description: description?.trim() ?? null,
           max_members: target_count,
           task_type: 'study',
-          status: 'open',
+          activity_type: 'study_task',
+          status: 'upcoming',
+          event_time: new Date().toISOString(),
         })
         .select('id')
         .single()
@@ -134,7 +136,7 @@ Deno.serve(async (req: Request) => {
 
       const { error: memberErr } = await supabase
         .from('activity_participants')
-        .insert({ activity_id: taskId, user_id: me, status: 'approved' })
+        .insert({ activity_id: taskId, user_id: me, status: 'registered' })
 
       if (memberErr) return err(memberErr.message, 500)
 
@@ -158,7 +160,7 @@ Deno.serve(async (req: Request) => {
 
       if (tErr) return err(tErr.message, 500)
       if (!task) return err('任务不存在', 404)
-      if (task.status !== 'open') return err('该任务已关闭，无法申请加入', 400)
+      if (task.status !== 'upcoming') return err('该任务已关闭，无法申请加入', 400)
 
       const { data: existingMember, error: memberCheckErr } = await supabase
         .from('activity_participants')
@@ -181,11 +183,11 @@ Deno.serve(async (req: Request) => {
 
       const { error: insertErr } = await supabase
         .from('activity_participants')
-        .insert({ activity_id: taskId, user_id: me, status: 'pending' })
+        .insert({ activity_id: taskId, user_id: me, status: 'registered' })
 
       if (insertErr) return err(insertErr.message, 500)
 
-      return ok({ success: true, message: '申请已提交' })
+      return ok({ success: true, message: '加入成功' })
     }
 
     return err('Method Not Allowed', 405)

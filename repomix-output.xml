@@ -1,0 +1,4680 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+The content has been processed where content has been compressed (code blocks are separated by ⋮---- delimiter).
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Content has been compressed - code blocks are separated by ⋮---- delimiter
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.gitignore
+.repomixignore
+frontend/.env
+frontend/.gitignore
+frontend/index.html
+frontend/package.json
+frontend/README.md
+frontend/src/api/anonymous.ts
+frontend/src/api/auth.ts
+frontend/src/api/chat.ts
+frontend/src/api/events.ts
+frontend/src/api/governance.ts
+frontend/src/api/groups.ts
+frontend/src/api/index.ts
+frontend/src/api/matches.ts
+frontend/src/api/posts.ts
+frontend/src/api/questions.ts
+frontend/src/api/study.ts
+frontend/src/api/tags.ts
+frontend/src/api/users.ts
+frontend/src/App.tsx
+frontend/src/components/chat/IcebreakerPanel.tsx
+frontend/src/components/chat/MessageBubble.tsx
+frontend/src/components/common/EmptyState.test.tsx
+frontend/src/components/common/EmptyState.tsx
+frontend/src/components/common/LoadingSpinner.test.tsx
+frontend/src/components/common/LoadingSpinner.tsx
+frontend/src/components/layout/AuthLayout.tsx
+frontend/src/components/layout/Layout.tsx
+frontend/src/components/layout/Sidebar.tsx
+frontend/src/components/layout/TopBar.tsx
+frontend/src/components/posts/CreatePostDialog.tsx
+frontend/src/components/posts/PostCard.tsx
+frontend/src/lib/http.ts
+frontend/src/lib/supabase.ts
+frontend/src/main.tsx
+frontend/src/pages/anonymous/AnonymousDetailPage.tsx
+frontend/src/pages/anonymous/AnonymousPage.tsx
+frontend/src/pages/auth/LoginPage.tsx
+frontend/src/pages/auth/RegisterPage.tsx
+frontend/src/pages/auth/TagSelectPage.tsx
+frontend/src/pages/chat/ChatListPage.tsx
+frontend/src/pages/chat/ChatRoomPage.tsx
+frontend/src/pages/events/EventDetailPage.tsx
+frontend/src/pages/events/EventsPage.tsx
+frontend/src/pages/feed/FeedPage.tsx
+frontend/src/pages/governance/CreditPage.tsx
+frontend/src/pages/groups/GroupDetailPage.tsx
+frontend/src/pages/groups/GroupsPage.tsx
+frontend/src/pages/match/MatchPage.tsx
+frontend/src/pages/NotFoundPage.tsx
+frontend/src/pages/profile/EditProfilePage.tsx
+frontend/src/pages/profile/ProfilePage.tsx
+frontend/src/pages/questions/QuestionDetailPage.tsx
+frontend/src/pages/questions/QuestionsPage.tsx
+frontend/src/pages/search/SearchPage.tsx
+frontend/src/pages/study/StudyPage.tsx
+frontend/src/store/hooks.ts
+frontend/src/store/index.ts
+frontend/src/store/slices/authSlice.test.ts
+frontend/src/store/slices/authSlice.ts
+frontend/src/store/slices/chatSlice.ts
+frontend/src/store/slices/postsSlice.ts
+frontend/src/test/setup.ts
+frontend/src/theme/index.ts
+frontend/src/types/index.ts
+frontend/src/vite-env.d.ts
+frontend/tsconfig.json
+frontend/tsconfig.node.json
+frontend/vite.config.ts
+frontend/vitest.config.ts
+package.json
+README.md
+repomix.config.json
+skills-lock.json
+supabase/AI聊天破冰助手.md
+supabase/AI情绪识别.md
+supabase/AI问答助手.md
+supabase/AI智能内容识别.md
+supabase/config.toml
+supabase/functions/_shared/ai-qa.ts
+supabase/functions/_shared/auth.ts
+supabase/functions/_shared/chat-icebreaker.ts
+supabase/functions/_shared/content-moderation.ts
+supabase/functions/_shared/cors.ts
+supabase/functions/_shared/emotion-support.ts
+supabase/functions/_shared/response.ts
+supabase/functions/_shared/supabase.ts
+supabase/functions/anonymous-posts/auth.ts
+supabase/functions/anonymous-posts/cors.ts
+supabase/functions/anonymous-posts/index.ts
+supabase/functions/anonymous-posts/response.ts
+supabase/functions/anonymous-posts/supabase.ts
+supabase/functions/answers/index.ts
+supabase/functions/auth/index.ts
+supabase/functions/conversations/index.ts
+supabase/functions/credit/index.ts
+supabase/functions/events/index.ts
+supabase/functions/groups/index.ts
+supabase/functions/matches/index.ts
+supabase/functions/messages/index.ts
+supabase/functions/posts/index.ts
+supabase/functions/questions/index.ts
+supabase/functions/reports/index.ts
+supabase/functions/study-tasks/index.ts
+supabase/functions/tags/index.ts
+supabase/functions/user-tags/index.ts
+supabase/functions/users/index.ts
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".repomixignore">
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+/node_modules
+/doc
+/.trae
+# Added by code-review-graph
+.code-review-graph/
+/Files
+supabase/migrations/
+supabase/migrations_backup/
+supabase/.temp/
+frontend/node_modules/
+.vscode/
+.marp/
+.agents/
+</file>
+
+<file path="frontend/README.md">
+# Quipster
+
+同济大学校园社交平台
+
+## 项目结构
+
+```
+Quipster/
+├── frontend/          # 前端项目 (Vite + React + TypeScript)
+├── supabase/          # Supabase Edge Functions
+└── Files/             # 项目文档
+```
+
+## 快速启动
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+启动后访问 http://localhost:3000/
+
+## 可用命令
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动开发服务器 |
+| `npm run build` | 构建生产版本 |
+| `npm run preview` | 预览生产构建 |
+| `npm run lint` | 代码检查 |
+
+## 技术栈
+
+- **前端**: Vite + React + TypeScript + MUI + Redux Toolkit
+- **后端**: Supabase (PostgreSQL + Edge Functions + Realtime)
+</file>
+
+<file path="frontend/src/components/chat/IcebreakerPanel.tsx">
+import React from 'react'
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material'
+import { AutoAwesome } from '@mui/icons-material'
+import type { IcebreakerSuggestion } from '@/types'
+⋮----
+interface Props {
+  icebreaker: IcebreakerSuggestion | null
+  loading?: boolean
+  onRefresh?: () => void | Promise<void>
+  compact?: boolean
+}
+</file>
+
+<file path="repomix.config.json">
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "truncateBase64": false,
+    "copyToClipboard": false,
+    "includeFullDirectoryStructure": false,
+    "tokenCountTree": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false,
+      "includeLogsCount": 50
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDotIgnore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
+</file>
+
+<file path="supabase/AI聊天破冰助手.md">
+# AI聊天破冰助手
+
+## 1. 模块说明
+
+本模块为匹配成功后的聊天场景增加“AI 聊天破冰助手”能力。
+
+当两个用户匹配成功后，系统会：
+
+1. 读取双方资料、专业与兴趣标签。
+2. 基于共同兴趣标签生成破冰建议。
+3. 可选调用 OpenRouter 生成更自然的聊天建议。
+
+设计目标：
+
+- 不影响原有匹配、会话和消息发送流程。
+- OpenRouter 不可用时自动退化为规则模板。
+- 不新增数据库表。
+
+## 2. 本次实现内容
+
+### 2.1 后端
+
+- `supabase/functions/_shared/chat-icebreaker.ts`
+- `supabase/functions/matches/index.ts`
+
+### 2.2 前端
+
+- `frontend/src/api/matches.ts`
+- `frontend/src/components/chat/IcebreakerPanel.tsx`
+- `frontend/src/pages/match/MatchPage.tsx`
+- `frontend/src/pages/chat/ChatRoomPage.tsx`
+- `frontend/src/types/index.ts`
+
+## 3. 数据库依赖
+
+- `users`
+- `user_tags`
+- `matches`
+- `conversations`
+- `conversation_members`
+
+## 4. OpenRouter 配置
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=你的_openrouter_key
+supabase secrets set OPENROUTER_MODEL=openrouter/free
+supabase secrets set OPENROUTER_APP_NAME=Quipster
+supabase secrets set OPENROUTER_SITE_URL=https://你的前端域名
+```
+
+## 5. API 设计
+
+```http
+GET /matches
+POST /matches
+GET /matches/icebreaker?peer_user_id=xxx
+```
+
+## 6. 前端展示规则
+
+- 匹配成功弹窗展示破冰建议。
+- 聊天页顶部展示破冰建议。
+</file>
+
+<file path="supabase/AI情绪识别.md">
+# AI情绪识别
+
+## 1. 模块说明
+
+本模块为匿名树洞增加“AI 情绪识别（Emotion Detection）”能力。
+
+当用户发布匿名树洞后，系统会：
+
+1. 对文本内容进行情绪分析。
+2. 将情绪划分为积极、中性、焦虑、压力、悲伤等类型。
+3. 在识别到明显负面情绪时，自动生成支持建议。
+4. 推荐相似树洞帖子与可关注的校园活动。
+
+设计目标：
+
+- 不影响原有匿名发帖、点赞、评论功能。
+- 情绪识别失败时，发帖仍然成功。
+- 优先使用规则识别，OpenRouter 可用时再做 AI 校正。
+
+## 2. 本次实现内容
+
+### 2.1 后端
+
+新增与修改的文件：
+
+- `supabase/functions/_shared/emotion-support.ts`
+- `supabase/functions/anonymous-posts/index.ts`
+
+后端新增能力：
+
+- 匿名发帖后自动异步进行情绪识别。
+- 将识别结果写回 `anonymous_posts.emotion_type / emotion_score / support_resources`。
+- 支持单独获取帖子详情、评论列表、情绪支持信息。
+- 支持手动重新执行情绪识别。
+
+### 2.2 前端
+
+新增与修改的文件：
+
+- `frontend/src/api/anonymous.ts`
+- `frontend/src/pages/anonymous/AnonymousPage.tsx`
+- `frontend/src/pages/anonymous/AnonymousDetailPage.tsx`
+- `frontend/src/types/index.ts`
+
+前端新增能力：
+
+- 树洞列表显示情绪标签。
+- 树洞详情页显示情绪识别结果、支持建议、相关树洞和推荐活动。
+- 支持手动“重新识别”。
+- 匿名详情页改为真实请求详情和评论接口，不再依赖拉列表后本地查找。
+
+## 3. 数据库依赖
+
+当前实现依赖以下表：
+
+- `anonymous_posts`
+- `likes`
+- `activities`
+- `users`
+
+### 3.1 anonymous_posts
+
+需要包含字段：
+
+- `id`
+- `user_id`
+- `title`
+- `content`
+- `tag`
+- `emotion_type`
+- `emotion_score`
+- `support_resources`
+- `type`
+- `parent_id`
+- `created_at`
+
+当前远端 schema 中这些字段已经存在。
+
+## 4. 情绪识别策略
+
+### 4.1 第一层：规则识别
+
+当前实现首先使用情绪词典和关键词匹配进行识别。
+
+支持的情绪类型：
+
+- `positive`
+- `neutral`
+- `anxiety`
+- `stress`
+- `sadness`
+
+规则层会：
+
+- 对树洞标题和正文做关键词匹配。
+- 根据命中词计算情绪倾向。
+- 识别明显风险词，如自伤、轻生等危机表达。
+
+### 4.2 第二层：OpenRouter 校正
+
+如果已配置 OpenRouter Key，系统会把规则初判结果发送给 OpenRouter 做一次轻量校正。
+
+校正输出只允许返回：
+
+- `emotion_type`
+- `emotion_score`
+
+如果 OpenRouter 不可用或返回异常，系统会自动回退到规则识别结果。
+
+## 5. 支持机制
+
+当情绪类型属于以下类别时：
+
+- `anxiety`
+- `stress`
+- `sadness`
+
+系统会自动提供支持建议，包括：
+
+- 基础情绪支持建议
+- 学业/压力沟通建议
+- 心理支持建议
+- 危机提示语
+- 相似树洞推荐
+- 近期活动推荐
+
+### 5.1 危机词触发
+
+如果文本中包含明显高风险表达，例如：
+
+- 不想活
+- 活不下去
+- 自杀
+- 轻生
+- 自残
+
+系统会额外给出更强的紧急支持提示。
+
+## 6. API 设计
+
+### 6.1 列表
+
+```http
+GET /anonymous-posts
+```
+
+返回中新增：
+
+- `emotion_type`
+- `emotion_label`
+
+### 6.2 详情
+
+```http
+GET /anonymous-posts/:id
+```
+
+返回中新增：
+
+- `emotion_type`
+- `emotion_label`
+- `emotion_score`
+- `support_resources`
+
+### 6.3 评论列表
+
+```http
+GET /anonymous-posts/:id/comments
+```
+
+### 6.4 情绪支持信息
+
+```http
+GET /anonymous-posts/:id/support
+```
+
+返回示例：
+
+```json
+{
+  "success": true,
+  "data": {
+    "emotion_type": "stress",
+    "emotion_label": "压力",
+    "emotion_score": 0.82,
+    "support_resources": [
+      "建议优先保证睡眠、饮食和短时休息，把当前问题拆成更小的可执行步骤。"
+    ],
+    "support_posts": [
+      { "id": "12", "title": "最近论文和课程压力真的好大" }
+    ],
+    "support_events": [
+      { "id": "3", "title": "校园减压分享会", "start_time": "2026-05-12T10:00:00Z" }
+    ]
+  }
+}
+```
+
+### 6.5 手动重算情绪识别
+
+```http
+POST /anonymous-posts/:id/analyze-emotion
+```
+
+用于手动重新触发识别与支持推荐生成。
+
+### 6.6 自动触发
+
+```http
+POST /anonymous-posts
+```
+
+发帖成功后，系统会后台异步执行一次情绪识别。  
+即使识别失败，发帖也仍然成功。
+
+## 7. OpenRouter 配置
+
+如果你已经为 AI 问答模块配置过以下 Secrets，这个模块可以直接复用：
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=你的_openrouter_key
+supabase secrets set OPENROUTER_MODEL=openrouter/free
+supabase secrets set OPENROUTER_APP_NAME=Quipster
+supabase secrets set OPENROUTER_SITE_URL=https://你的前端域名
+```
+
+说明：
+
+- `OPENROUTER_API_KEY`：可选，但建议配置。
+- 未配置时系统仍可运行，只是只用规则识别。
+
+## 8. Supabase 云端部署步骤
+
+### 8.1 登录
+
+```bash
+supabase login
+```
+
+### 8.2 关联项目
+
+```bash
+supabase link --project-ref atvnnhjlouscahugvsee
+```
+
+### 8.3 配置 Secrets
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=你的_openrouter_key
+supabase secrets set OPENROUTER_MODEL=openrouter/free
+supabase secrets set OPENROUTER_APP_NAME=Quipster
+supabase secrets set OPENROUTER_SITE_URL=https://你的前端域名
+```
+
+### 8.4 部署函数
+
+```bash
+supabase functions deploy anonymous-posts
+```
+
+## 9. 注意事项
+
+### 9.1 不影响原功能
+
+本次实现遵循“情绪识别与匿名树洞主流程解耦”的原则：
+
+- 发帖成功不依赖情绪识别成功。
+- 点赞、评论不依赖情绪识别结果。
+- 情绪分析只写回匿名帖子本身，不影响匿名性。
+
+### 9.2 匿名性
+
+所有新增接口仍然不返回 `user_id`。  
+本模块不会破坏匿名树洞的匿名展示规则。
+
+### 9.3 当前限制
+
+当前识别策略仍以规则匹配为主，OpenRouter 只做轻量校正。  
+因此它适合作为“辅助识别”，不应被当作医学或心理诊断结果。
+
+## 10. 建议的后续增强
+
+后续可以继续增强：
+
+1. 增加专门的心理资源表，而不是把支持建议只写成文本数组。
+2. 增加“支持内容已查看”或“我需要帮助”按钮。
+3. 用向量检索做更好的树洞相似推荐。
+4. 将活动推荐改成更精确的情绪主题活动推荐。
+5. 增加后台管理页面，维护支持文案与校园资源信息。
+</file>
+
+<file path="supabase/AI问答助手.md">
+# AI问答助手
+
+## 1. 模块说明
+
+本模块为校园问答增加一个“AI 参考回答”能力。
+
+当用户发布问题后，系统会：
+
+1. 对问题标题与正文做关键词提取。
+2. 从 Supabase 的 `knowledge_base` 资料库中检索相关内容。
+3. 将检索结果发送给 OpenRouter，再生成一份参考回答。
+4. 把生成结果写入 `ai_answers` 表，并在问题详情页展示。
+
+设计目标：
+
+- 不影响现有人工提问、回答、采纳等功能。
+- AI 生成失败时，问题仍然可以正常发布。
+- 即使 OpenRouter 不可用，也会退化为“资料摘要型参考回答”。
+
+## 2. 本次实现内容
+
+### 2.1 后端
+
+新增与修改的文件：
+
+- `supabase/functions/_shared/ai-qa.ts`
+- `supabase/functions/questions/index.ts`
+- `supabase/functions/answers/index.ts`
+- `supabase/migrations/20260507120000_add_has_ai_answer_to_questions.sql`
+
+后端新增能力：
+
+- 发布问题后自动异步生成 AI 参考回答。
+- 支持手动生成/重新生成 AI 参考回答。
+- 支持单独读取某个问题的 AI 参考回答。
+- 检索来源优先使用 `knowledge_base`。
+- OpenRouter 调用失败时自动回退为资料摘要回答。
+
+### 2.2 前端
+
+新增与修改的文件：
+
+- `frontend/src/api/questions.ts`
+- `frontend/src/pages/questions/QuestionDetailPage.tsx`
+- `frontend/src/types/index.ts`
+
+前端新增能力：
+
+- 在问题详情页展示独立的“AI 参考回答”卡片。
+- 支持“生成回答”和“重新生成”。
+- AI 回答与人工回答分开展示，不混淆。
+
+## 3. 数据库依赖
+
+当前实现依赖以下表：
+
+- `questions`
+- `answers`
+- `ai_answers`
+- `knowledge_base`
+- `question_tags`
+- `users`
+
+### 3.1 questions
+
+需要包含字段：
+
+- `id`
+- `user_id`
+- `title`
+- `content`
+- `category`
+- `is_solved`
+- `has_ai_answer`
+- `created_at`
+
+### 3.2 ai_answers
+
+需要包含字段：
+
+- `id`
+- `question_id`
+- `content`
+- `created_at`
+
+### 3.3 knowledge_base
+
+当前检索使用以下字段：
+
+- `id`
+- `title`
+- `content`
+- `category`
+- `keywords`
+- `source`
+- `is_active`
+
+如果你的 Supabase 云端项目已经同步过 `20260430073251_remote_schema.sql`，通常已包含 `ai_answers` 和 `knowledge_base`。  
+本次新增的本地迁移只补 `questions.has_ai_answer`：
+
+- `supabase/migrations/20260507120000_add_has_ai_answer_to_questions.sql`
+
+## 4. OpenRouter 配置
+
+### 4.1 需要的 Secrets
+
+部署到 Supabase 云端前，请设置以下 Edge Function Secrets：
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=你的_openrouter_key
+supabase secrets set OPENROUTER_MODEL=openrouter/free
+supabase secrets set OPENROUTER_APP_NAME=Quipster
+supabase secrets set OPENROUTER_SITE_URL=https://你的前端域名
+```
+
+说明：
+
+- `OPENROUTER_API_KEY`：必填。
+- `OPENROUTER_MODEL`：可选，默认使用 `openrouter/free`。
+- `OPENROUTER_APP_NAME`：可选，用于请求标识。
+- `OPENROUTER_SITE_URL`：建议填写你的正式前端域名。
+
+如果你后续想换免费模型，可以只改 `OPENROUTER_MODEL`，无需改代码。
+
+## 5. API 设计
+
+### 5.1 自动生成
+
+发布问题时：
+
+- `POST /questions`
+
+系统会在问题写入成功后，通过后台异步任务自动生成 AI 参考回答。  
+如果 AI 生成失败，不会影响问题发布成功。
+
+### 5.2 获取 AI 参考回答
+
+```http
+GET /questions/:id/ai-answer
+```
+
+返回示例：
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "question_id": "12",
+    "content": "这是 AI 生成的参考回答",
+    "created_at": "2026-05-07T12:00:00.000Z"
+  }
+}
+```
+
+如果还没有生成结果：
+
+```json
+{
+  "success": true,
+  "data": null
+}
+```
+
+### 5.3 手动生成或重新生成
+
+```http
+POST /questions/:id/ai-answer
+POST /questions/:id/ai-answer?force=true
+```
+
+说明：
+
+- 不带 `force=true`：若已存在结果，则返回缓存结果。
+- 带 `force=true`：强制重新生成，并覆盖旧结果。
+
+## 6. 生成流程说明
+
+### 6.1 问题理解与关键词提取
+
+当前策略：
+
+- 从标题和正文中提取中文词片段与英文术语。
+- 对标题中的词给予更高权重。
+- 过滤常见停用词。
+
+### 6.2 知识库检索
+
+当前策略：
+
+- 先根据问题内容推断类别，如课程、考研、实习、生活、校园服务。
+- 在 `knowledge_base` 中优先拉取同类别资料。
+- 按标题命中、正文命中、关键词命中进行打分排序。
+- 取前 5 条资料作为 AI 生成上下文。
+
+### 6.3 答案生成
+
+当前策略：
+
+- 把问题、关键词、资料摘要发送到 OpenRouter。
+- 要求模型只基于资料生成“参考回答”。
+- 明确禁止编造政策、时间、流程和联系方式。
+
+### 6.4 失败回退
+
+如果出现以下情况：
+
+- 未配置 `OPENROUTER_API_KEY`
+- OpenRouter 请求失败
+- 模型未返回可用内容
+
+系统会自动回退为“资料摘要型回答”，仍然写入 `ai_answers` 表。
+
+## 7. 前端展示规则
+
+问题详情页中：
+
+- AI 回答显示在人工回答列表之前。
+- 独立显示为“AI 参考回答”卡片。
+- 有清晰提示：“仅供参考，不替代人工回答和学校最新通知”。
+- 用户可手动点击“生成回答”或“重新生成”。
+
+## 8. Supabase 云端部署步骤
+
+### 8.1 登录 Supabase
+
+```bash
+supabase login
+```
+
+### 8.2 关联项目
+
+```bash
+supabase link --project-ref atvnnhjlouscahugvsee
+```
+
+### 8.3 推送数据库迁移
+
+```bash
+supabase db push
+```
+
+### 8.4 配置 OpenRouter Secrets
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=你的_openrouter_key
+supabase secrets set OPENROUTER_MODEL=openrouter/free
+supabase secrets set OPENROUTER_APP_NAME=Quipster
+supabase secrets set OPENROUTER_SITE_URL=https://你的前端域名
+```
+
+### 8.5 部署 Edge Functions
+
+```bash
+supabase functions deploy questions
+supabase functions deploy answers
+```
+
+如果你习惯一次性部署全部函数，也可以按你的现有流程执行。
+
+## 9. 资料库准备建议
+
+AI 质量主要取决于 `knowledge_base` 的内容质量。
+
+建议至少录入以下类型资料：
+
+- 教务相关常见问题
+- 学院办事流程
+- 校园服务指南
+- 宿舍/食堂/图书馆/快递等生活信息
+- 考研与实习经验整理
+
+建议每条知识尽量补齐：
+
+- `title`
+- `content`
+- `category`
+- `keywords`
+- `source`
+
+这样检索效果会明显更稳定。
+
+## 10. 注意事项
+
+### 10.1 不影响现有功能
+
+本次实现遵循“AI 与原有问答解耦”的原则：
+
+- 发布问题成功不依赖 AI 成功。
+- 人工回答、采纳答案不依赖 AI。
+- AI 回答单独存储在 `ai_answers`，不会污染 `answers` 表。
+
+### 10.2 已顺手修复的兼容问题
+
+为避免问答模块其它功能被旧字段不一致影响，本次还修正了 `answers/accept` 与当前远端 schema 的兼容问题：
+
+- 不再依赖 `questions.has_accepted_answer`
+- 不再依赖 `questions.status`
+- 改为使用 `questions.is_solved`
+- 积分记录改为写入 `credit_records.change`
+
+### 10.3 当前限制
+
+当前知识库检索仍是“关键词匹配 + 规则打分”，不是向量检索。  
+如果后续要提升准确率，可以继续升级为：
+
+- pgvector 向量检索
+- Embedding 召回
+- 混合检索
+- 更精细的 Prompt 模板
+
+## 11. 建议的后续增强
+
+可以继续做的增强项：
+
+1. 增加 AI 回答状态字段，如 `pending / ready / failed`。
+2. 在问题列表页增加“AI 已回答”标记。
+3. 在后台增加知识库管理页面。
+4. 为 AI 回答增加引用资料列表展示。
+5. 将关键词检索升级为向量检索。
+</file>
+
+<file path="supabase/AI智能内容识别.md">
+# AI智能内容识别
+
+## 1. 模块说明
+
+本模块为 Supabase 后端补充“AI 智能内容识别（AI Content Moderation）”能力。
+
+## 2. 实现范围
+
+- `supabase/functions/_shared/content-moderation.ts`
+- `supabase/functions/posts/index.ts`
+- `supabase/functions/anonymous-posts/index.ts`
+- `supabase/functions/messages/index.ts`
+- `supabase/functions/conversations/index.ts`
+- `supabase/migrations/20260509000000_content_moderation.sql`
+
+## 3. 数据库变更
+
+按照supabase已有字段进行变更。
+
+## 4. 审核流程
+
+1. 规则检测优先。
+2. OpenRouter 可用时进行二次校正。
+3. 非 `passed` 内容自动标记并提交 `reports`。
+
+## 5. OpenRouter 配置
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=你的_openrouter_key
+supabase secrets set OPENROUTER_MODEL=openrouter/free
+supabase secrets set OPENROUTER_APP_NAME=Quipster
+supabase secrets set OPENROUTER_SITE_URL=https://你的前端域名
+```
+</file>
+
+<file path="supabase/functions/_shared/ai-qa.ts">
+// @ts-ignore Deno
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+⋮----
+export interface QuestionContext {
+  id: string
+  title: string
+  content: string
+  category?: string | null
+}
+⋮----
+export interface AiAnswerRecord {
+  id: string
+  question_id: string
+  content: string
+  created_at: string
+}
+⋮----
+export interface KnowledgeReference {
+  id: string
+  title: string
+  category: string | null
+  source: string | null
+}
+⋮----
+export interface GenerateAiAnswerResult {
+  answer: AiAnswerRecord
+  cached: boolean
+  model: string | null
+  keywords: string[]
+  references: KnowledgeReference[]
+  used_fallback: boolean
+}
+⋮----
+interface KnowledgeDocument {
+  id: number | string
+  title: string
+  content: string
+  category: string | null
+  keywords: string[] | null
+  source: string | null
+}
+⋮----
+function toText(value: unknown): string
+⋮----
+function uniqueStrings(values: string[]): string[]
+⋮----
+function normalizeWhitespace(text: string): string
+⋮----
+function truncate(text: string, maxLength: number): string
+⋮----
+function countOccurrences(source: string, keyword: string): number
+⋮----
+function collectLatinTerms(text: string): string[]
+⋮----
+function collectChineseTerms(text: string): string[]
+⋮----
+function rankTerms(terms: string[], limit: number): string[]
+⋮----
+export function extractKeywords(question: QuestionContext): string[]
+⋮----
+function inferCategory(question: QuestionContext, keywords: string[]): string | null
+⋮----
+function scoreKnowledgeDoc(
+  doc: KnowledgeDocument,
+  keywords: string[],
+  preferredCategory: string | null
+): number
+⋮----
+async function fetchKnowledgeBaseCandidates(
+  supabase: SupabaseClient,
+  preferredCategory: string | null
+): Promise<KnowledgeDocument[]>
+⋮----
+async function retrieveKnowledgeDocs(
+  supabase: SupabaseClient,
+  question: QuestionContext,
+  keywords: string[]
+): Promise<KnowledgeDocument[]>
+⋮----
+function buildReferences(docs: KnowledgeDocument[]): KnowledgeReference[]
+⋮----
+function formatKnowledgeContext(docs: KnowledgeDocument[]): string
+⋮----
+function buildFallbackReferenceAnswer(
+  question: QuestionContext,
+  docs: KnowledgeDocument[]
+): string
+⋮----
+async function generateOpenRouterAnswer(
+  question: QuestionContext,
+  keywords: string[],
+  docs: KnowledgeDocument[]
+): Promise<
+⋮----
+function mapAiAnswerRecord(row:
+⋮----
+export async function getStoredAiAnswer(
+  supabase: SupabaseClient,
+  questionId: string
+): Promise<AiAnswerRecord | null>
+⋮----
+export async function generateAndStoreAiAnswer(
+  supabase: SupabaseClient,
+  question: QuestionContext,
+  options?: { force?: boolean }
+): Promise<GenerateAiAnswerResult>
+</file>
+
+<file path="supabase/functions/_shared/chat-icebreaker.ts">
+// @ts-ignore Deno
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+⋮----
+export interface IcebreakerResult {
+  common_tags: string[]
+  opening_lines: string[]
+  topic_suggestions: string[]
+  interaction_ideas: string[]
+  mini_games: string[]
+  used_ai: boolean
+  model: string | null
+}
+⋮----
+interface UserProfile {
+  id: string
+  nickname: string
+  major: string | null
+  bio: string | null
+}
+⋮----
+interface ProfileRow {
+  id: string
+  nickname: string
+  major: string | null
+  bio: string | null
+}
+⋮----
+interface TagRow {
+  user_id: string
+  tags: { name: string } | null
+}
+⋮----
+function toText(value: unknown): string
+⋮----
+function normalizeWhitespace(text: string): string
+⋮----
+function uniqueStrings(values: string[]): string[]
+⋮----
+function take(values: string[], max: number): string[]
+⋮----
+function truncate(text: string, maxLength: number): string
+⋮----
+function normalizeList(value: unknown): string[]
+⋮----
+function findTagHook(tag: string)
+⋮----
+function buildTagDrivenIdeas(commonTags: string[])
+⋮----
+function buildFallbackIcebreaker(
+  currentUser: UserProfile,
+  peerUser: UserProfile,
+  commonTags: string[]
+): IcebreakerResult
+⋮----
+async function fetchProfiles(
+  supabase: SupabaseClient,
+  userIds: [string, string]
+): Promise<Map<string, UserProfile>>
+⋮----
+async function fetchTags(
+  supabase: SupabaseClient,
+  userIds: [string, string]
+): Promise<Map<string, string[]>>
+⋮----
+function buildOpenRouterHeaders(apiKey: string): Record<string, string>
+⋮----
+async function generateWithOpenRouter(
+  currentUser: UserProfile,
+  peerUser: UserProfile,
+  commonTags: string[],
+  fallback: IcebreakerResult
+): Promise<IcebreakerResult | null>
+⋮----
+export async function generateIcebreakerSuggestions(
+  supabase: SupabaseClient,
+  currentUserId: string,
+  peerUserId: string
+): Promise<IcebreakerResult>
+</file>
+
+<file path="supabase/functions/_shared/content-moderation.ts">
+// @ts-ignore Deno
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+⋮----
+export type ContentTargetType = 'post' | 'comment' | 'anonymous_post' | 'message'
+export type ModerationRiskLevel = 'safe' | 'low' | 'medium' | 'high'
+export type ModerationAuditStatus = 'pending' | 'passed' | 'flagged' | 'rejected'
+⋮----
+export interface ContentModerationInput {
+  target_type: ContentTargetType
+  content: string
+  title?: string | null
+}
+⋮----
+export interface ContentModerationResult {
+  audit_status: ModerationAuditStatus
+  risk_level: ModerationRiskLevel
+  risk_score: number
+  matched_keywords: string[]
+  reasons: string[]
+  summary: string
+  used_ai: boolean
+  model: string | null
+  needs_admin_review: boolean
+}
+⋮----
+export interface ModerationReportTarget {
+  target_type: 'post' | 'comment' | 'anonymous_post' | 'message'
+  target_id: string | number
+}
+⋮----
+interface RuleGroup {
+  label: string
+  keywords: string[]
+  weight: number
+}
+⋮----
+function normalizeWhitespace(text: string): string
+⋮----
+function truncate(text: string, maxLength: number): string
+⋮----
+function uniqueStrings(values: string[]): string[]
+⋮----
+function countOccurrences(source: string, keyword: string): number
+⋮----
+function clamp(value: number, min: number, max: number): number
+⋮----
+function severityRank(level: ModerationRiskLevel): number
+⋮----
+function riskLevelFromScore(score: number, keywordCount: number): ModerationRiskLevel
+⋮----
+function summarizeRiskLevel(level: ModerationRiskLevel): string
+⋮----
+function summarizeAuditStatus(status: ModerationAuditStatus): string
+⋮----
+function buildSummary(
+  riskLevel: ModerationRiskLevel,
+  matchedKeywords: string[],
+  reasons: string[]
+): string
+⋮----
+function analyzeByRules(text: string):
+⋮----
+async function maybeRefineWithOpenRouter(
+  input: ContentModerationInput,
+  ruleResult: {
+    riskLevel: ModerationRiskLevel
+    riskScore: number
+    matchedKeywords: string[]
+    reasons: string[]
+  }
+): Promise<
+⋮----
+export async function analyzeContentModeration(
+  input: ContentModerationInput
+): Promise<ContentModerationResult>
+⋮----
+export function summarizeModerationStatus(status: ModerationAuditStatus): string
+⋮----
+export async function submitModerationReport(
+  supabase: SupabaseClient,
+  reporterUserId: string,
+  target: ModerationReportTarget,
+  summary: string,
+  details: string[]
+): Promise<void>
+</file>
+
+<file path="supabase/functions/_shared/emotion-support.ts">
+// @ts-ignore Deno
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+⋮----
+export type EmotionType = 'positive' | 'neutral' | 'anxiety' | 'stress' | 'sadness'
+⋮----
+export interface EmotionAnalysisResult {
+  emotion_type: EmotionType
+  emotion_score: number
+  support_resources: string[]
+  triggers: string[]
+  matched_keywords: string[]
+  support_posts: Array<{ id: string; title: string }>
+  support_events: Array<{ id: string; title: string; start_time: string | null }>
+  used_ai: boolean
+}
+⋮----
+interface EmotionRule {
+  type: EmotionType
+  keywords: string[]
+  weight: number
+}
+⋮----
+interface AnonymousPostContext {
+  id: string
+  title: string
+  content: string
+  tag?: string | null
+}
+⋮----
+function normalizeWhitespace(text: string): string
+⋮----
+function truncate(text: string, maxLength: number): string
+⋮----
+function clamp(value: number, min: number, max: number): number
+⋮----
+function countKeywordHits(text: string, keyword: string): number
+⋮----
+function scoreEmotionByRules(text: string):
+⋮----
+async function maybeRefineEmotionWithAi(
+  post: AnonymousPostContext,
+  ruleResult: {
+    emotionType: EmotionType
+    score: number
+    matchedKeywords: string[]
+    triggers: string[]
+  }
+): Promise<
+⋮----
+async function findSupportPosts(
+  supabase: SupabaseClient,
+  postId: string,
+  emotionType: EmotionType
+): Promise<Array<
+⋮----
+async function findSupportEvents(
+  supabase: SupabaseClient,
+  emotionType: EmotionType
+): Promise<Array<
+⋮----
+function buildSupportResources(
+  emotionType: EmotionType,
+  score: number,
+  triggers: string[],
+  supportPosts: Array<{ id: string; title: string }>,
+  supportEvents: Array<{ id: string; title: string; start_time: string | null }>
+): string[]
+⋮----
+export async function analyzeEmotionAndSupport(
+  supabase: SupabaseClient,
+  post: AnonymousPostContext
+): Promise<EmotionAnalysisResult>
+⋮----
+export async function persistEmotionAnalysis(
+  supabase: SupabaseClient,
+  post: AnonymousPostContext
+): Promise<EmotionAnalysisResult>
+⋮----
+export function summarizeEmotionLabel(emotionType: EmotionType): string
+⋮----
+export function buildFallbackSupportSummary(result: EmotionAnalysisResult): string
+</file>
+
+<file path="frontend/.env">
+VITE_SUPABASE_URL=https://atvnnhjlouscahugvsee.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0dm5uaGpsb3VzY2FodWd2c2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MjE2MzMsImV4cCI6MjA5MDQ5NzYzM30.ZlZffGs63PEfa0f8X9tjFienw0vX9IguH6bdFE8iuJI
+VITE_API_BASE_URL=https://atvnnhjlouscahugvsee.supabase.co/functions/v1
+</file>
+
+<file path="frontend/.gitignore">
+node_modules
+dist
+.env.local
+.env.development.local
+.env.production.local
+*.log
+.DS_Store
+</file>
+
+<file path="frontend/index.html">
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Quipster - 同济大学校园兴趣社交平台" />
+    <title>Quipster | 同济兴趣社交</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="frontend/src/api/anonymous.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  AnonymousPost,
+  AnonymousComment,
+  AnonymousSupportInfo,
+  CreateAnonymousPostDto,
+  GetAnonymousPostsParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/auth.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  RegisterDto,
+  RegisterResponse,
+  LoginDto,
+  LoginResponse,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/chat.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  Conversation,
+  Message,
+  SendMessageDto,
+  GetMessagesParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/events.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  Event,
+  CreateEventDto,
+  GetEventsParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/governance.ts">
+import http from '@/lib/http'
+import type { ApiResponse, ReportDto, CreditInfo } from '@/types'
+</file>
+
+<file path="frontend/src/api/index.ts">
+
+</file>
+
+<file path="frontend/src/api/matches.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  MatchUser,
+  MatchActionDto,
+  MatchActionResponse,
+  IcebreakerSuggestion,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/study.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  StudyTask,
+  CreateStudyTaskDto,
+  GetStudyTasksParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/tags.ts">
+import http from '@/lib/http'
+import type { ApiResponse, Tag, UserTag } from '@/types'
+</file>
+
+<file path="frontend/src/api/users.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  User,
+  UserBasic,
+  UpdateUserDto,
+  SearchUsersParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/components/chat/MessageBubble.tsx">
+import React from 'react'
+import { Box, Typography } from '@mui/material'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import type { Message } from '@/types'
+⋮----
+interface MessageBubbleProps {
+  message: Message
+  isOwn: boolean
+}
+</file>
+
+<file path="frontend/src/components/common/EmptyState.test.tsx">
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import EmptyState from '@/components/common/EmptyState'
+</file>
+
+<file path="frontend/src/components/common/EmptyState.tsx">
+import { Box, Typography, SvgIconProps } from '@mui/material'
+import InboxIcon from '@mui/icons-material/Inbox'
+import type { SvgIconComponent } from '@mui/icons-material'
+⋮----
+interface Props {
+  message?: string
+  icon?: React.ReactNode
+}
+</file>
+
+<file path="frontend/src/components/common/LoadingSpinner.test.tsx">
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
+</file>
+
+<file path="frontend/src/components/common/LoadingSpinner.tsx">
+import { Box, CircularProgress } from '@mui/material'
+⋮----
+interface Props {
+  minHeight?: string | number
+}
+⋮----
+export default function LoadingSpinner(
+</file>
+
+<file path="frontend/src/components/layout/AuthLayout.tsx">
+import { Box, Typography, Paper } from '@mui/material'
+import { Outlet } from 'react-router-dom'
+</file>
+
+<file path="frontend/src/components/layout/Layout.tsx">
+import { Box } from '@mui/material'
+import { Outlet } from 'react-router-dom'
+import Sidebar from './Sidebar'
+import TopBar from './TopBar'
+</file>
+
+<file path="frontend/src/components/layout/Sidebar.tsx">
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Avatar, Divider, Button } from '@mui/material'
+import { useNavigate, useLocation } from 'react-router-dom'
+import HomeIcon from '@mui/icons-material/Home'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import ChatIcon from '@mui/icons-material/Chat'
+import GroupsIcon from '@mui/icons-material/Groups'
+import EventIcon from '@mui/icons-material/Event'
+import LockIcon from '@mui/icons-material/Lock'
+import HelpIcon from '@mui/icons-material/Help'
+import SchoolIcon from '@mui/icons-material/School'
+import StarIcon from '@mui/icons-material/Star'
+import LogoutIcon from '@mui/icons-material/Logout'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { logoutUser } from '@/store/slices/authSlice'
+⋮----
+const handleLogout = async () =>
+⋮----
+{/* Logo */}
+⋮----
+{/* User info */}
+⋮----
+{/* Nav items */}
+⋮----
+onClick=
+</file>
+
+<file path="frontend/src/components/layout/TopBar.tsx">
+import { AppBar, Toolbar, IconButton, InputBase, Avatar, Box, Tooltip } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import MenuIcon from '@mui/icons-material/Menu'
+import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useAppSelector } from '@/store/hooks'
+⋮----
+const handleSearch = (e: React.KeyboardEvent) =>
+⋮----
+{/* Search */}
+⋮----
+{/* User avatar */}
+⋮----
+<IconButton onClick=
+</file>
+
+<file path="frontend/src/lib/http.ts">
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios'
+⋮----
+// Request interceptor: attach access token or anon key
+⋮----
+// Response interceptor: unified error handling
+⋮----
+// Token expired - clear storage and redirect to login
+</file>
+
+<file path="frontend/src/lib/supabase.ts">
+import { createClient } from '@supabase/supabase-js'
+</file>
+
+<file path="frontend/src/main.tsx">
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { Provider } from 'react-redux'
+import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
+import { ToastContainer } from 'react-toastify'
+⋮----
+import { store } from '@/store'
+import theme from '@/theme'
+import App from './App'
+</file>
+
+<file path="frontend/src/pages/auth/LoginPage.tsx">
+import { useEffect } from 'react'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useForm, type SubmitHandler } from 'react-hook-form'
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Alert,
+  CircularProgress,
+  Link,
+  Paper,
+  InputAdornment,
+} from '@mui/material'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import SchoolIcon from '@mui/icons-material/School'
+import { loginUser, clearError } from '@/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import type { LoginDto } from '@/types'
+⋮----
+// ─── Component ───────────────────────────────────────────────────────────────
+⋮----
+// Redirect away if already logged in
+⋮----
+// Clear stale errors when component mounts
+⋮----
+const onSubmit: SubmitHandler<LoginDto> = async (data) =>
+⋮----
+{/* Logo & Title */}
+⋮----
+{/* Error Banner */}
+⋮----
+{/* Form */}
+⋮----
+{/* Footer */}
+</file>
+
+<file path="frontend/src/pages/auth/RegisterPage.tsx">
+import { useEffect, useState } from 'react'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useForm, type SubmitHandler } from 'react-hook-form'
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Alert,
+  CircularProgress,
+  Link,
+  Paper,
+  InputAdornment,
+  Snackbar,
+} from '@mui/material'
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import SchoolIcon from '@mui/icons-material/School'
+import { registerUser, clearError } from '@/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import type { RegisterDto } from '@/types'
+⋮----
+// ─── Component ───────────────────────────────────────────────────────────────
+⋮----
+const onSubmit: SubmitHandler<RegisterDto> = async (data) =>
+⋮----
+// Navigate after the snackbar has been visible for a moment
+⋮----
+{/* Logo & Title */}
+⋮----
+{/* Error Banner */}
+⋮----
+{/* Form */}
+⋮----
+{/* Footer */}
+⋮----
+{/* Success Snackbar */}
+</file>
+
+<file path="frontend/src/pages/auth/TagSelectPage.tsx">
+import { useEffect, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  Paper,
+  Typography,
+  Alert,
+  LinearProgress,
+} from '@mui/material'
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { tagsApi } from '@/api/tags'
+import type { Tag } from '@/types'
+⋮----
+// ─── Types ────────────────────────────────────────────────────────────────────
+⋮----
+interface GroupedTags {
+  category: string
+  tags: Tag[]
+}
+⋮----
+// ─── Component ────────────────────────────────────────────────────────────────
+⋮----
+// Fetch all tags on mount
+⋮----
+// Group tags by category
+⋮----
+const toggleTag = (id: number) =>
+⋮----
+const handleFinish = async () =>
+⋮----
+const handleSkip = () =>
+⋮----
+// ─── Render ──────────────────────────────────────────────────────────────────
+⋮----
+{/* Header */}
+⋮----
+{/* Selected count indicator */}
+⋮----
+{/* Error states */}
+⋮----
+{/* Tag List */}
+⋮----
+onClick=
+</file>
+
+<file path="frontend/src/pages/events/EventDetailPage.tsx">
+import React, { useEffect, useState } from 'react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  LinearProgress,
+  Paper,
+  Typography,
+} from '@mui/material'
+import {
+  ArrowBack,
+  CalendarMonth,
+  CheckCircle,
+  LocationOn,
+  People,
+} from '@mui/icons-material'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { eventsApi } from '@/api/events'
+import { useAppSelector } from '@/store/hooks'
+import type { Event } from '@/types'
+⋮----
+const load = async () =>
+⋮----
+// Fetch single event by loading the events list and finding the matching one.
+// (No dedicated GET /events/:id endpoint in current API — fetch list with large limit
+//  and find the item, or just load the first page and rely on list state.)
+⋮----
+const formatTime = (iso: string) =>
+⋮----
+const handleSignup = async () =>
+⋮----
+{/* Cover */}
+⋮----
+{/* Organizer */}
+⋮----
+{/* Participants */}
+</file>
+
+<file path="frontend/src/pages/events/EventsPage.tsx">
+import React, { useEffect, useState, useCallback } from 'react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  InputAdornment,
+  LinearProgress,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from '@mui/material'
+import {
+  Add,
+  CalendarMonth,
+  CheckCircle,
+  LocationOn,
+  People,
+  Search,
+} from '@mui/icons-material'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { eventsApi } from '@/api/events'
+import { useAppSelector } from '@/store/hooks'
+import type { Event, CreateEventDto, GetEventsParams } from '@/types'
+⋮----
+type StatusTab = 'all' | 'upcoming' | 'on_going' | 'ended'
+⋮----
+// ─── Create Event Dialog ─────────────────────────────────────────────────────
+⋮----
+interface CreateEventDialogProps {
+  open: boolean
+  onClose: () => void
+  onCreated: () => void
+}
+⋮----
+const handleChange = (field: keyof CreateEventDto) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) =>
+⋮----
+const handleSubmit = async () =>
+⋮----
+// ─── Event Card ───────────────────────────────────────────────────────────────
+⋮----
+const formatTime = (iso: string) =>
+⋮----
+const handleSignup = async (e: React.MouseEvent) =>
+⋮----
+<Typography variant="body2">
+⋮----
+{/* Organizer */}
+⋮----
+{/* Participants */}
+⋮----
+// ─── Events Page ──────────────────────────────────────────────────────────────
+⋮----
+const [tabValue, setTabValue] = useState<StatusTab>('all')
+const [keyword, setKeyword] = useState('')
+const [searchInput, setSearchInput] = useState('')
+const [events, setEvents] = useState<Event[]>([])
+const [loading, setLoading] = useState(false)
+const [page, setPage] = useState(1)
+const [hasMore, setHasMore] = useState(true)
+const [dialogOpen, setDialogOpen] = useState(false)
+⋮----
+const fetchEvents = useCallback(
+async (reset = false) =>
+⋮----
+// Reset and reload when tab or search changes
+useEffect(() =>
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps
+⋮----
+setEvents((prev)
+⋮----
+{/* Header */}
+⋮----
+{/* Status Tabs */}
+⋮----
+{/* Search */}
+⋮----
+{/* Events Grid */}
+⋮----
+{/* Loading */}
+⋮----
+{/* Load More */}
+⋮----
+onCreated=
+</file>
+
+<file path="frontend/src/pages/NotFoundPage.tsx">
+import React from 'react'
+import { Box, Button, Container, Typography } from '@mui/material'
+import { Home } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
+</file>
+
+<file path="frontend/src/pages/search/SearchPage.tsx">
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Avatar,
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Pagination,
+  Select,
+  type SelectChangeEvent,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { Search } from '@mui/icons-material'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { usersApi } from '@/api/users'
+import { tagsApi } from '@/api/tags'
+import type { UserBasic, UserTag } from '@/types'
+⋮----
+// ─── Constants ────────────────────────────────────────────────────────────────
+⋮----
+// ─── UserCard ─────────────────────────────────────────────────────────────────
+⋮----
+interface UserCardProps {
+  user: UserBasic & { tags?: UserTag[] }
+  onClick: () => void
+}
+⋮----
+// ─── SearchPage ───────────────────────────────────────────────────────────────
+⋮----
+const navigate = useNavigate()
+const [searchParams, setSearchParams] = useSearchParams()
+⋮----
+// Read initial keyword from URL query
+const [keyword, setKeyword] = useState(searchParams.get('keyword') ?? '')
+const [major, setMajor] = useState('')
+const [grade, setGrade] = useState('')
+const [page, setPage] = useState(1)
+⋮----
+const [results, setResults] = useState<UserBasic[]>([])
+const [userTagsMap, setUserTagsMap] = useState<Record<string, UserTag[]>>(
+const [loading, setLoading] = useState(false)
+const [totalPages, setTotalPages] = useState(0)
+const [searched, setSearched] = useState(false)
+⋮----
+// Keep latest filter values in a ref for debounce closure
+const filtersRef = useRef(
+⋮----
+// ── Search function ──
+const doSearch = useCallback(async (nextPage: number) =>
+⋮----
+// Fetch tags for each user (fire-and-forget, best effort)
+⋮----
+// ignore
+⋮----
+// ── Debounce on keyword / major / grade change ──
+useEffect(() =>
+⋮----
+// Sync keyword to URL
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps
+⋮----
+// ── Page change ──
+const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) =>
+doSearch(value)
+window.scrollTo(
+⋮----
+{/* Empty state */}
+⋮----
+{/* Initial empty state (not yet searched) */}
+⋮----
+onClick=
+</file>
+
+<file path="frontend/src/pages/study/StudyPage.tsx">
+import React, { useEffect, useState, useCallback } from 'react'
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  LinearProgress,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  type SelectChangeEvent,
+  Snackbar,
+  Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material'
+import { Add, Group, Person } from '@mui/icons-material'
+import { format, parseISO } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { studyApi } from '@/api/study'
+import { tagsApi } from '@/api/tags'
+import type { StudyTask, Tag } from '@/types'
+⋮----
+// ─── Types ────────────────────────────────────────────────────────────────────
+⋮----
+type StatusFilter = 'all' | 'open' | 'closed'
+⋮----
+interface CreateFormState {
+  title: string
+  description: string
+  tags: number[]
+  target_count: number | ''
+}
+⋮----
+// ─── StudyTaskCard ─────────────────────────────────────────────────────────────
+⋮----
+interface StudyTaskCardProps {
+  task: StudyTask
+  onJoin: (taskId: string) => void
+  joining: boolean
+}
+⋮----
+{/* Creator */}
+⋮----
+{/* Tags */}
+⋮----
+{/* Footer: time + action */}
+⋮----
+onClick=
+⋮----
+// ─── StudyPage ─────────────────────────────────────────────────────────────────
+⋮----
+const [tasks, setTasks] = useState<StudyTask[]>([])
+const [loading, setLoading] = useState(false)
+const [page, setPage] = useState(1)
+const [hasMore, setHasMore] = useState(false)
+⋮----
+const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+const [tagFilter, setTagFilter] = useState<number | ''>('')
+⋮----
+const [allTags, setAllTags] = useState<Tag[]>([])
+⋮----
+// Join state
+const [joiningId, setJoiningId] = useState<string | null>(null)
+⋮----
+// Create dialog
+⋮----
+// ── Load tags ──
+⋮----
+// ── Fetch tasks ──
+⋮----
+// ignore
+⋮----
+// ── Join task ──
+⋮----
+setJoiningId(taskId)
+    try {
+      const res = await studyApi.joinTask(taskId)
+if (res.data.success)
+⋮----
+// ── Create task ──
+⋮----
+if (!form.title.trim())
+⋮----
+{/* Header */}
+⋮----
+{/* Filters */}
+⋮----
+{/* Empty state */}
+⋮----
+{/* Task list */}
+⋮----
+{/* Load more */}
+⋮----
+<Button onClick=
+⋮----
+{/* ── Create Task Dialog ── */}
+⋮----
+{/* Snackbar */}
+</file>
+
+<file path="frontend/src/store/hooks.ts">
+import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux'
+import type { RootState, AppDispatch } from './index'
+⋮----
+export const useAppDispatch = ()
+</file>
+
+<file path="frontend/src/store/index.ts">
+import { configureStore } from '@reduxjs/toolkit'
+import authReducer from './slices/authSlice'
+import postsReducer from './slices/postsSlice'
+import chatReducer from './slices/chatSlice'
+⋮----
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+</file>
+
+<file path="frontend/src/store/slices/authSlice.test.ts">
+import { describe, it, expect, beforeEach } from 'vitest'
+import authReducer, { clearError, updateUser } from '@/store/slices/authSlice'
+import type { AuthState, User } from '@/types'
+</file>
+
+<file path="frontend/src/store/slices/authSlice.ts">
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { authApi } from '@/api/auth'
+import type { AuthState, LoginDto, RegisterDto, Session, User } from '@/types'
+⋮----
+// ─── Thunks ──────────────────────────────────────────────────────────────────
+⋮----
+// ignore logout errors
+⋮----
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+⋮----
+function loadInitialState(): AuthState
+⋮----
+// ─── Slice ───────────────────────────────────────────────────────────────────
+⋮----
+clearError(state)
+updateUser(state, action: PayloadAction<User>)
+⋮----
+// Register
+⋮----
+// Login
+⋮----
+// Logout
+</file>
+
+<file path="frontend/src/store/slices/chatSlice.ts">
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { chatApi } from '@/api/chat'
+import type { Conversation, Message, SendMessageDto } from '@/types'
+⋮----
+interface ChatState {
+  conversations: Conversation[]
+  activeConversationId: string | null
+  messages: Record<string, Message[]>
+  loadingConversations: boolean
+  loadingMessages: boolean
+  error: string | null
+}
+⋮----
+setActiveConversation(state, action: PayloadAction<string>)
+receiveMessage(
+      state,
+      action: PayloadAction<{ conversationId: string; message: Message }>
+)
+⋮----
+// Update last message in conversation list
+⋮----
+// Find conversationId from active conversation
+</file>
+
+<file path="frontend/src/test/setup.ts">
+import { vi } from 'vitest'
+</file>
+
+<file path="frontend/src/theme/index.ts">
+import { createTheme } from '@mui/material/styles'
+</file>
+
+<file path="frontend/src/vite-env.d.ts">
+/// <reference types="vite/client" />
+⋮----
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string
+  readonly VITE_SUPABASE_ANON_KEY: string
+  readonly VITE_API_BASE_URL: string
+}
+⋮----
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+</file>
+
+<file path="frontend/tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+</file>
+
+<file path="frontend/tsconfig.node.json">
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="frontend/vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+</file>
+
+<file path="frontend/vitest.config.ts">
+/// <reference types="vitest" />
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+</file>
+
+<file path="README.md">
+# Quipster
+
+同济大学校园社交平台
+
+## 项目结构
+
+```
+Quipster/
+├── frontend/          # 前端项目 (Vite + React + TypeScript)
+├── supabase/          # Supabase Edge Functions
+└── Files/             # 项目文档
+```
+
+## 快速启动
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+启动后访问 http://localhost:3000/
+
+## 可用命令
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动开发服务器 |
+| `npm run build` | 构建生产版本 |
+| `npm run preview` | 预览生产构建 |
+| `npm run lint` | 代码检查 |
+
+## 技术栈
+
+- **前端**: Vite + React + TypeScript + MUI + Redux Toolkit
+- **后端**: Supabase (PostgreSQL + Edge Functions + Realtime)
+</file>
+
+<file path="skills-lock.json">
+{
+  "version": 1,
+  "skills": {
+    "academic-writing": {
+      "source": "jamditis/claude-skills-journalism",
+      "sourceType": "github",
+      "computedHash": "5f65557e34f32ba47f17583972d8aa4cd6acea08d3061c58947c5301818e5dec"
+    },
+    "giving-presentations": {
+      "source": "refoundai/lenny-skills",
+      "sourceType": "github",
+      "computedHash": "cf63f007c40471b04009b55107f2c930483bb025a6c938e1408d59fb22cb1c69"
+    },
+    "presentation-design": {
+      "source": "jwynia/agent-skills",
+      "sourceType": "github",
+      "computedHash": "cc83e20ff7b7df6ada2eada0a92843fe0e726cdffd40a8fd3297de3a8678be6e"
+    }
+  }
+}
+</file>
+
+<file path="supabase/functions/_shared/cors.ts">
+// ============================================================
+// 共享 CORS 头部配置
+// ============================================================
+⋮----
+/** 处理 CORS 预检请求，如果是 OPTIONS 请求则直接返回 */
+export function handleCors(req: Request): Response | null
+</file>
+
+<file path="supabase/functions/_shared/response.ts">
+import { corsHeaders } from './cors.ts'
+⋮----
+// ============================================================
+// 统一响应工具
+// ============================================================
+⋮----
+type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+interface JsonObject { [key: string]: JsonValue }
+interface JsonArray extends Array<JsonValue> {}
+⋮----
+/** 成功响应 */
+export function ok(data: JsonValue, status = 200): Response
+⋮----
+/** 错误响应 */
+export function err(message: string, status = 400): Response
+⋮----
+/** 构建标准分页信息 */
+export function buildPagination(page: number, limit: number, total: number)
+⋮----
+/** 从查询参数安全解析分页参数 */
+export function parsePagination(url: URL):
+</file>
+
+<file path="supabase/functions/_shared/supabase.ts">
+// @ts-ignore Deno
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+⋮----
+// @ts-ignore Deno
+⋮----
+// @ts-ignore Deno
+⋮----
+// @ts-ignore Deno
+⋮----
+/**
+ * 管理员客户端（绕过 RLS），用于 Edge Functions 内部数据操作
+ */
+export function createAdminClient(): SupabaseClient
+⋮----
+/**
+ * 匿名客户端，用于触发 Supabase Auth 的注册/登录流程
+ */
+export function createAnonClient(): SupabaseClient
+⋮----
+/**
+ * 以用户 JWT 创建有上下文的客户端（符合 RLS）
+ */
+export function createUserClient(accessToken: string): SupabaseClient
+</file>
+
+<file path="supabase/functions/anonymous-posts/auth.ts">
+import { createAdminClient } from './supabase.ts'
+⋮----
+// ============================================================
+// JWT 认证辅助工具
+// ============================================================
+⋮----
+export interface AuthUser {
+  id: string
+  email: string
+}
+⋮----
+/**
+ * 从请求头中提取 Bearer Token
+ */
+export function extractToken(req: Request): string | null
+⋮----
+/**
+ * 验证 JWT 并返回当前用户信息，失败返回 null
+ */
+export async function getAuthUser(req: Request): Promise<AuthUser | null>
+⋮----
+/**
+ * 要求认证，失败时返回 401 响应
+ * 使用方式：const [user, resp] = await requireAuth(req); if (resp) return resp;
+ */
+import { corsHeaders } from './cors.ts'
+⋮----
+export async function requireAuth(
+  req: Request
+): Promise<[AuthUser, null] | [null, Response]>
+⋮----
+/**
+ * 解析 URL 中函数名之后的路径片段
+ * Supabase Edge Functions 中 url.pathname 已经是相对路径，如 /posts 或 /posts/uuid/like
+ * 例如 /posts/UUID/like → ['UUID', 'like']
+ */
+export function getPathSegments(url: URL, functionName: string): string[]
+</file>
+
+<file path="supabase/functions/anonymous-posts/cors.ts">
+// ============================================================
+// 共享 CORS 头部配置
+// ============================================================
+⋮----
+/** 处理 CORS 预检请求，如果是 OPTIONS 请求则直接返回 */
+export function handleCors(req: Request): Response | null
+</file>
+
+<file path="supabase/functions/anonymous-posts/response.ts">
+import { corsHeaders } from './cors.ts'
+⋮----
+// ============================================================
+// 统一响应工具
+// ============================================================
+⋮----
+type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+interface JsonObject { [key: string]: JsonValue }
+interface JsonArray extends Array<JsonValue> {}
+⋮----
+/** 成功响应 */
+export function ok(data: JsonValue, status = 200): Response
+⋮----
+/** 错误响应 */
+export function err(message: string, status = 400): Response
+⋮----
+/** 构建标准分页信息 */
+export function buildPagination(page: number, limit: number, total: number)
+⋮----
+/** 从查询参数安全解析分页参数 */
+export function parsePagination(url: URL):
+</file>
+
+<file path="supabase/functions/anonymous-posts/supabase.ts">
+// @ts-ignore Deno
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+⋮----
+// @ts-ignore Deno
+⋮----
+// @ts-ignore Deno
+⋮----
+// @ts-ignore Deno
+⋮----
+/**
+ * 管理员客户端（绕过 RLS），用于 Edge Functions 内部数据操作
+ */
+export function createAdminClient(): SupabaseClient
+⋮----
+/**
+ * 匿名客户端，用于触发 Supabase Auth 的注册/登录流程
+ */
+export function createAnonClient(): SupabaseClient
+⋮----
+/**
+ * 以用户 JWT 创建有上下文的客户端（符合 RLS）
+ */
+export function createUserClient(accessToken: string): SupabaseClient
+</file>
+
+<file path="supabase/functions/reports/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err } from '../_shared/response.ts'
+import { requireAuth } from '../_shared/auth.ts'
+⋮----
+type TargetType = typeof VALID_TARGET_TYPES[number]
+⋮----
+/** 验证字符串是否可被当作数值 ID 或 UUID 使用 */
+function isValidTargetId(value: string): boolean
+⋮----
+// @ts-ignore Deno
+⋮----
+// CORS 预检处理
+⋮----
+// ── POST /reports ── 提交举报 ────────────────────────────────────
+⋮----
+// 验证 target_type
+⋮----
+// 验证 target_id 为合法数值 ID 或 UUID
+⋮----
+// 验证 reason 非空
+</file>
+
+<file path="supabase/functions/tags/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err } from '../_shared/response.ts'
+import { requireAuth } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// tags/index.ts — 获取所有标签
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+// 处理 CORS 预检
+⋮----
+// GET /tags
+⋮----
+// ----------------------------------------------------------------
+// GET /tags — 返回全部标签
+// ----------------------------------------------------------------
+async function handleGetTags(req: Request): Promise<Response>
+</file>
+
+<file path="supabase/functions/user-tags/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// user-tags/index.ts — 用户标签管理
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+// 处理 CORS 预检
+⋮----
+// segments: [] → /user-tags, ['uuid'] → /user-tags/:userId
+⋮----
+// GET /user-tags/:userId → 获取某用户的标签
+⋮----
+// POST /user-tags → 设置当前用户的标签
+⋮----
+// ----------------------------------------------------------------
+// GET /user-tags/:userId — 获取某用户的标签
+// ----------------------------------------------------------------
+async function handleGetUserTags(req: Request, userId: string): Promise<Response>
+⋮----
+// JOIN user_tags 和 tags，获取标签详情
+⋮----
+// 整理返回格式
+⋮----
+// ----------------------------------------------------------------
+// POST /user-tags — 设置当前用户的标签（全量替换）
+// ----------------------------------------------------------------
+async function handleSetUserTags(req: Request): Promise<Response>
+⋮----
+// 验证所有元素都是正整数
+⋮----
+// 如果提供了 tag_ids，先验证这些 tag 是否都存在
+⋮----
+// 事务：先删除当前用户所有标签，再重新插入
+⋮----
+// 如果 tag_ids 不为空，则批量插入
+</file>
+
+<file path="tsconfig.json">
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // File Layout
+    // "rootDir": "./src",
+    // "outDir": "./dist",
+
+    // Environment Settings
+    // See also https://aka.ms/tsconfig/module
+    "module": "nodenext",
+    "target": "esnext",
+    "types": [],
+    // For nodejs:
+    // "lib": ["esnext"],
+    // "types": ["node"],
+    // and npm install -D @types/node
+
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Style Options
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "strict": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+  }
+}
+</file>
+
+<file path="frontend/src/api/groups.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  Group,
+  GroupMember,
+  CreateGroupDto,
+  UpdateGroupDto,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/posts.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  Post,
+  Comment,
+  CreatePostDto,
+  GetPostsParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/api/questions.ts">
+import http from '@/lib/http'
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  Question,
+  Answer,
+  AiAnswer,
+  CreateQuestionDto,
+  GetQuestionsParams,
+} from '@/types'
+</file>
+
+<file path="frontend/src/App.tsx">
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAppSelector } from '@/store/hooks'
+⋮----
+import Layout from '@/components/layout/Layout'
+import AuthLayout from '@/components/layout/AuthLayout'
+⋮----
+import LoginPage from '@/pages/auth/LoginPage'
+import RegisterPage from '@/pages/auth/RegisterPage'
+import TagSelectPage from '@/pages/auth/TagSelectPage'
+⋮----
+import FeedPage from '@/pages/feed/FeedPage'
+import ProfilePage from '@/pages/profile/ProfilePage'
+import EditProfilePage from '@/pages/profile/EditProfilePage'
+import MatchPage from '@/pages/match/MatchPage'
+import ChatListPage from '@/pages/chat/ChatListPage'
+import ChatRoomPage from '@/pages/chat/ChatRoomPage'
+import GroupsPage from '@/pages/groups/GroupsPage'
+import GroupDetailPage from '@/pages/groups/GroupDetailPage'
+import EventsPage from '@/pages/events/EventsPage'
+import EventDetailPage from '@/pages/events/EventDetailPage'
+import AnonymousPage from '@/pages/anonymous/AnonymousPage'
+import AnonymousDetailPage from '@/pages/anonymous/AnonymousDetailPage'
+import QuestionsPage from '@/pages/questions/QuestionsPage'
+import QuestionDetailPage from '@/pages/questions/QuestionDetailPage'
+import StudyPage from '@/pages/study/StudyPage'
+import CreditPage from '@/pages/governance/CreditPage'
+import SearchPage from '@/pages/search/SearchPage'
+import NotFoundPage from '@/pages/NotFoundPage'
+⋮----
+function RequireAuth(
+⋮----
+function GuestOnly(
+⋮----
+export default function App()
+⋮----
+{/* Auth routes */}
+⋮----
+{/* App routes */}
+</file>
+
+<file path="frontend/src/components/posts/CreatePostDialog.tsx">
+import React, { useRef, useState } from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Typography,
+  Box,
+  IconButton,
+  CircularProgress,
+  Stack,
+  LinearProgress,
+} from '@mui/material'
+import { Close, AddPhotoAlternate, DeleteOutline } from '@mui/icons-material'
+import { useAppDispatch } from '@/store/hooks'
+import { createPost } from '@/store/slices/postsSlice'
+import { supabase } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
+⋮----
+interface CreatePostDialogProps {
+  open: boolean
+  onClose: () => void
+}
+⋮----
+const handleClose = () =>
+⋮----
+const handleFileSelect = () =>
+⋮----
+const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) =>
+⋮----
+const handleRemoveImage = (idx: number) =>
+⋮----
+const handleSubmit = async () =>
+⋮----
+onChange=
+</file>
+
+<file path="frontend/src/components/posts/PostCard.tsx">
+import React, { useEffect, useState } from 'react'
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardActions,
+  Avatar,
+  IconButton,
+  Typography,
+  Box,
+  Collapse,
+  Divider,
+  TextField,
+  Button,
+  ImageList,
+  ImageListItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Tooltip,
+  CircularProgress,
+} from '@mui/material'
+import {
+  FavoriteBorder,
+  Favorite,
+  ChatBubbleOutline,
+  FlagOutlined,
+  Send,
+  WarningAmber,
+} from '@mui/icons-material'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
+import { useAppDispatch } from '@/store/hooks'
+import { toggleLike, addComment } from '@/store/slices/postsSlice'
+import { governanceApi } from '@/api/governance'
+import { postsApi } from '@/api/posts'
+import type { Post, Comment } from '@/types'
+⋮----
+interface PostCardProps {
+  post: Post
+}
+⋮----
+const fetchComments = async () =>
+⋮----
+const handleLike = async () =>
+⋮----
+const handleCommentSubmit = async () =>
+⋮----
+const handleReportSubmit = async () =>
+⋮----
+// ignore
+⋮----
+const handleReportClose = () =>
+⋮----
+onClick=
+⋮----
+{/* 举报 Dialog */}
+</file>
+
+<file path="frontend/src/pages/anonymous/AnonymousDetailPage.tsx">
+import React, { useEffect, useRef, useState } from 'react'
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { ArrowBack, AutoAwesome, Comment, Favorite, FavoriteBorder, Refresh, Send, WarningAmber } from '@mui/icons-material'
+import { format, formatDistanceToNow } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { anonymousApi } from '@/api/anonymous'
+import { useAppSelector } from '@/store/hooks'
+import type { AnonymousComment, AnonymousPost, AnonymousSupportInfo } from '@/types'
+⋮----
+const formatTime = (iso: string) =>
+⋮----
+const timeAgo = (iso: string) =>
+⋮----
+const load = async () =>
+⋮----
+const handleLike = async () =>
+⋮----
+const handleSubmitComment = async () =>
+⋮----
+const handleAnalyzeEmotion = async () =>
+⋮----
+</file>
+
+<file path="frontend/src/pages/anonymous/AnonymousPage.tsx">
+import React, { useCallback, useEffect, useState } from 'react'
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material'
+import { Add, Comment, Favorite, FavoriteBorder, WarningAmber } from '@mui/icons-material'
+import { formatDistanceToNow } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { anonymousApi } from '@/api/anonymous'
+import { tagsApi } from '@/api/tags'
+import { useAppSelector } from '@/store/hooks'
+import type { AnonymousPost, CreateAnonymousPostDto, GetAnonymousPostsParams, Tag } from '@/types'
+⋮----
+// ─── Create Post Dialog ───────────────────────────────────────────────────────
+⋮----
+interface CreatePostDialogProps {
+  open: boolean
+  onClose: () => void
+  allTags: Tag[]
+  onCreated: () => void
+}
+⋮----
+const handleTagChange = (e: SelectChangeEvent<number[]>) =>
+⋮----
+const handleSubmit = async () =>
+⋮----
+// ─── Post Card ────────────────────────────────────────────────────────────────
+⋮----
+const truncate = (text: string, max = 100)
+⋮----
+const timeAgo = (iso: string) =>
+⋮----
+const handleLike = async (e: React.MouseEvent) =>
+⋮----
+<CardActionArea onClick=
+⋮----
+{/* Footer */}
+⋮----
+// ─── Anonymous Page ───────────────────────────────────────────────────────────
+⋮----
+// Load tags once
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps
+⋮----
+const handleLikeChange = (postId: string, isLiked: boolean, count: number) =>
+⋮----
+{/* Header */}
+⋮----
+{/* Sort Toggle */}
+⋮----
+onChange=
+⋮----
+{/* Tag Filter */}
+⋮----
+onClick=
+⋮----
+{/* Posts */}
+⋮----
+onCreated=
+</file>
+
+<file path="frontend/src/pages/chat/ChatListPage.tsx">
+import React, { useEffect } from 'react'
+import {
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Divider,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemButton,
+  ListItemText,
+  Typography,
+} from '@mui/material'
+import { PeopleAlt, Groups } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
+import { format, isToday, isThisYear } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { fetchConversations } from '@/store/slices/chatSlice'
+⋮----
+function formatTime(dateStr: string): string
+⋮----
+onClick=
+</file>
+
+<file path="frontend/src/pages/chat/ChatRoomPage.tsx">
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Avatar,
+  Box,
+  CircularProgress,
+  Container,
+  IconButton,
+  InputAdornment,
+  Paper,
+  TextField,
+  Toolbar,
+  Typography,
+} from '@mui/material'
+import { ArrowBack, Send, Groups, WarningAmber } from '@mui/icons-material'
+import { useNavigate, useParams } from 'react-router-dom'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import IcebreakerPanel from '@/components/chat/IcebreakerPanel'
+import { matchesApi } from '@/api/matches'
+import { supabase } from '@/lib/supabase'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import {
+  fetchConversations,
+  fetchMessages,
+  sendMessage,
+  receiveMessage,
+  setActiveConversation,
+} from '@/store/slices/chatSlice'
+import type { IcebreakerSuggestion, Message } from '@/types'
+⋮----
+function formatMessageTime(dateStr: string): string
+⋮----
+interface BubbleProps {
+  message: Message
+  isSelf: boolean
+}
+⋮----
+const loadIcebreaker = async () =>
+⋮----
+const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) =>
+⋮----
+
+⋮----
+onRefresh=
+</file>
+
+<file path="frontend/src/pages/feed/FeedPage.tsx">
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Typography,
+} from '@mui/material'
+import { Add } from '@mui/icons-material'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { fetchPosts, resetPosts } from '@/store/slices/postsSlice'
+import PostCard from '@/components/posts/PostCard'
+import CreatePostDialog from '@/components/posts/CreatePostDialog'
+⋮----
+// Initial load
+⋮----
+// IntersectionObserver for infinite scroll
+⋮----
+{/* Header */}
+⋮----
+{/* Error state */}
+⋮----
+{/* Posts list */}
+⋮----
+{/* Loading indicator */}
+⋮----
+{/* No more data */}
+⋮----
+{/* Sentinel for IntersectionObserver */}
+⋮----
+{/* Create Post Dialog */}
+</file>
+
+<file path="frontend/src/pages/governance/CreditPage.tsx">
+import React, { useEffect, useState } from 'react'
+import {
+  Alert,
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  LinearProgress,
+  Stack,
+  Typography,
+} from '@mui/material'
+import {
+  ArrowDownward,
+  ArrowUpward,
+  EmojiEvents,
+  Warning,
+} from '@mui/icons-material'
+import { format, parseISO } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { governanceApi } from '@/api/governance'
+import type { CreditInfo, CreditRecord } from '@/types'
+⋮----
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+⋮----
+interface CreditLevel {
+  label: string
+  color: 'success' | 'warning' | 'error'
+  hexColor: string
+  description: string
+}
+⋮----
+function getCreditLevel(score: number): CreditLevel
+⋮----
+function getProgressColor(score: number): string
+⋮----
+// ─── CreditRecordItem ─────────────────────────────────────────────────────────
+⋮----
+interface CreditRecordItemProps {
+  record: CreditRecord
+  isLast: boolean
+}
+⋮----
+{/* Icon column */}
+⋮----
+{/* Content */}
+⋮----
+// ─── CreditPage ───────────────────────────────────────────────────────────────
+⋮----
+const load = async () =>
+⋮----
+{/* Warning banner */}
+⋮----
+{/* Score card */}
+⋮----
+{/* Progress bar */}
+⋮----
+{/* Level descriptions */}
+⋮----
+{/* Change records */}
+</file>
+
+<file path="frontend/src/pages/groups/GroupDetailPage.tsx">
+import React, { useEffect, useState, useRef } from 'react'
+import {
+  Avatar,
+  AvatarGroup,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  LinearProgress,
+  Paper,
+  Skeleton,
+  TextField,
+  Typography,
+  Snackbar,
+  Alert,
+} from '@mui/material'
+import {
+  ArrowBack,
+  CalendarMonth,
+  CheckCircle,
+  Edit,
+  Group,
+  LocationOn,
+  People,
+  PersonAdd,
+  PersonRemove,
+  Chat,
+  Add,
+} from '@mui/icons-material'
+import { format } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { groupsApi } from '@/api/groups'
+import { eventsApi } from '@/api/events'
+import { supabase } from '@/lib/supabase'
+import type { Group as GroupType, GroupMember, Event, CreateEventDto } from '@/types'
+⋮----
+const CoverSkeleton: React.FC = ()
+⋮----
+interface EditDialogProps {
+  open: boolean
+  onClose: () => void
+  group: GroupType | null
+  onSuccess: () => void
+}
+⋮----
+const EditDialog: React.FC<EditDialogProps> = (
+⋮----
+const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) =>
+⋮----
+const handleSubmit = async () =>
+⋮----
+onClick=
+⋮----
+onChange=
+⋮----
+interface CreateEventDialogProps {
+  open: boolean
+  onClose: () => void
+  onCreated: () => void
+  groupId: number
+}
+⋮----
+const handleChange = (field: keyof CreateEventDto) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) =>
+⋮----
+const formatTime = (iso: string) =>
+⋮----
+const handleSignup = async (e: React.MouseEvent) =>
+⋮----
+<Typography variant="body2">
+⋮----
+if (!groupId) return
+    setMembersLoading(true)
+    groupsApi
+      .getGroupMembers(groupId, { page: 1, limit: 20 })
+.then((res) =>
+⋮----
+useEffect(() =>
+⋮----
+<IconButton onClick=
+</file>
+
+<file path="frontend/src/pages/groups/GroupsPage.tsx">
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardMedia,
+  Checkbox,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  Grid,
+  InputAdornment,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  type SelectChangeEvent,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { Add, Group, Search } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
+import { groupsApi } from '@/api/groups'
+import { tagsApi } from '@/api/tags'
+import type { CreateGroupDto, Group as GroupType, Tag } from '@/types'
+⋮----
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+⋮----
+function useDebounce<T>(value: T, delay: number): T
+⋮----
+// ─── Create Group Dialog ──────────────────────────────────────────────────────
+⋮----
+interface CreateGroupDialogProps {
+  open: boolean
+  onClose: () => void
+  onCreated: (group: GroupType) => void
+}
+⋮----
+// Load tags when dialog opens
+⋮----
+// ignore, tags are optional
+⋮----
+const handleTagChange = (event: SelectChangeEvent<number[]>) =>
+⋮----
+const handleClose = () =>
+⋮----
+const handleSubmit = async () =>
+⋮----
+// Build a local Group object to hand back
+⋮----
+const tagNameById = (id: number)
+⋮----
+onChange=
+⋮----
+{/* Tags multi-select */}
+⋮----
+// ─── Group Card ───────────────────────────────────────────────────────────────
+⋮----
+const handleCardClick = () =>
+⋮----
+const handleJoin = async (e: React.MouseEvent) =>
+⋮----
+// ignore
+⋮----
+{/* Cover image or colored placeholder */}
+⋮----
+{/* Loading indicator */}
+⋮----
+{/* No more data */}
+⋮----
+{/* Sentinel for infinite scroll */}
+⋮----
+{/* Create group dialog */}
+</file>
+
+<file path="frontend/src/pages/profile/EditProfilePage.tsx">
+import React, { useEffect, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useForm, type SubmitHandler, Controller } from 'react-hook-form'
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  InputLabel,
+  LinearProgress,
+  MenuItem,
+  Paper,
+  Select,
+  Switch,
+  TextField,
+  Typography,
+  Alert,
+  IconButton,
+  Tooltip,
+} from '@mui/material'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
+import { usersApi } from '@/api/users'
+import { tagsApi } from '@/api/tags'
+import { updateUser } from '@/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import type { UpdateUserDto, Tag, UserTag } from '@/types'
+⋮----
+// ─── Form field shape (mirrors UpdateUserDto + visibility as boolean) ─────────
+⋮----
+interface EditProfileFormValues {
+  nickname: string
+  gender: string
+  major: string
+  grade: string
+  bio: string
+  visibility: boolean // true = public (1), false = private (0)
+}
+⋮----
+visibility: boolean // true = public (1), false = private (0)
+⋮----
+interface GroupedTags {
+  category: string
+  tags: Tag[]
+}
+⋮----
+// ─── Component ────────────────────────────────────────────────────────────────
+⋮----
+// 兴趣标签状态
+⋮----
+// 按分类分组标签
+⋮----
+const toggleTag = (id: number) =>
+⋮----
+// Pre-fill form with current user data when it becomes available
+⋮----
+// 加载所有标签和用户已选标签
+⋮----
+const onSubmit: SubmitHandler<EditProfileFormValues> = async (data) =>
+⋮----
+// 并行保存用户资料和兴趣标签
+⋮----
+// 重新获取用户信息以更新 store
+⋮----
+// Redirect if not logged in
+⋮----
+// ─── Render ──────────────────────────────────────────────────────────────────
+⋮----
+{/* Back button */}
+⋮----
+<IconButton onClick=
+⋮----
+{/* ── Basic info ── */}
+⋮----
+{/* Gender select */}
+⋮----
+{/* ── Bio ── */}
+⋮----
+{/* ── Interest Tags ── */}
+⋮----
+onClick=
+⋮----
+{/* ── Privacy ── */}
+⋮----
+{/* ── Submit ── */}
+</file>
+
+<file path="frontend/src/pages/profile/ProfilePage.tsx">
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  Paper,
+  Typography,
+  Alert,
+  Stack,
+} from '@mui/material'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined'
+import StarOutlinedIcon from '@mui/icons-material/StarOutlined'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
+import { usersApi } from '@/api/users'
+import { tagsApi } from '@/api/tags'
+import { useAppSelector } from '@/store/hooks'
+import type { User, UserTag } from '@/types'
+⋮----
+// ─── Credit badge colour helper ───────────────────────────────────────────────
+⋮----
+function creditColor(score: number): 'success' | 'warning' | 'error' | 'default'
+⋮----
+function genderLabel(gender: string): string
+⋮----
+// ─── Component ────────────────────────────────────────────────────────────────
+⋮----
+// Resolve which user to display
+⋮----
+// ─── Render ──────────────────────────────────────────────────────────────────
+⋮----
+{/* Cover gradient */}
+⋮----
+{/* Avatar + Edit button row */}
+⋮----
+onClick=
+⋮----
+{/* User info */}
+⋮----
+{/* Nickname & credit */}
+⋮----
+{/* Email */}
+⋮----
+{/* Meta info */}
+⋮----
+{/* Bio */}
+⋮----
+{/* Tags */}
+⋮----
+{/* Visibility note (self only) */}
+</file>
+
+<file path="frontend/src/store/slices/postsSlice.ts">
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { postsApi } from '@/api/posts'
+import type { Post, Comment, GetPostsParams } from '@/types'
+⋮----
+interface PostsState {
+  items: Post[]
+  loading: boolean
+  error: string | null
+  page: number
+  hasMore: boolean
+  totalPages: number
+}
+⋮----
+resetPosts(state)
+</file>
+
+<file path="package.json">
+{
+  "name": "quipster",
+  "version": "1.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "playwright": "^1.59.1",
+    "pptxgenjs": "^4.0.1",
+    "sharp": "^0.34.5"
+  }
+}
+</file>
+
+<file path="supabase/config.toml">
+project_id = "atvnnhjlouscahugvsee"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[functions.auth]
+verify_jwt = false
+</file>
+
+<file path="supabase/functions/_shared/auth.ts">
+import { createAdminClient } from './supabase.ts'
+⋮----
+// ============================================================
+// JWT 认证辅助工具
+// ============================================================
+⋮----
+export interface AuthUser {
+  id: string
+  email: string
+}
+⋮----
+/**
+ * 从请求头中提取 Bearer Token
+ */
+export function extractToken(req: Request): string | null
+⋮----
+/**
+ * 验证 JWT 并返回当前用户信息，失败返回 null
+ */
+export async function getAuthUser(req: Request): Promise<AuthUser | null>
+⋮----
+/**
+ * 要求认证，失败时返回 401 响应
+ * 使用方式：const [user, resp] = await requireAuth(req); if (resp) return resp;
+ */
+import { corsHeaders } from './cors.ts'
+⋮----
+export async function requireAuth(
+  req: Request
+): Promise<[AuthUser, null] | [null, Response]>
+⋮----
+/**
+ * 解析 URL 中函数名之后的路径片段
+ * Supabase Edge Functions 中 url.pathname 已经是相对路径，如 /posts 或 /posts/uuid/like
+ * 例如 /posts/UUID/like → ['UUID', 'like']
+ */
+export function getPathSegments(url: URL, functionName: string): string[]
+</file>
+
+<file path="supabase/functions/answers/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// @ts-ignore Deno
+⋮----
+// CORS 预检处理
+⋮----
+// segments[0] = answerId, segments[1] = 'accept'
+⋮----
+// ── POST /answers/:id/accept ── 采纳答案 ─────────────────────────
+⋮----
+// 查询答案及其所属问题
+⋮----
+// 验证当前用户是问题的提问者
+⋮----
+// 检查问题是否已有采纳答案
+⋮----
+// 采纳答案
+⋮----
+// 更新问题状态
+⋮----
+// 给答题者加信用分
+⋮----
+// 如果 RPC 不存在，则直接 UPDATE（兜底方案）
+</file>
+
+<file path="supabase/functions/auth/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient, createAnonClient } from '../_shared/supabase.ts'
+import { ok, err } from '../_shared/response.ts'
+import { requireAuth, extractToken } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// auth/index.ts — 注册 / 登录 / 登出
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+// 处理 CORS 预检
+⋮----
+// POST /auth/register
+⋮----
+// POST /auth/login
+⋮----
+// POST /auth/logout
+⋮----
+// ----------------------------------------------------------------
+// 注册
+// ----------------------------------------------------------------
+async function handleRegister(req: Request): Promise<Response>
+⋮----
+// 验证邮箱格式
+⋮----
+// 验证密码
+⋮----
+// 验证昵称
+⋮----
+// 检查昵称是否已存在
+⋮----
+// 创建用户
+⋮----
+// 发送验证邮件
+⋮----
+// 确保 users 记录存在（触发器可能有延迟，手动兜底）
+⋮----
+// ----------------------------------------------------------------
+// 登录
+// ----------------------------------------------------------------
+async function handleLogin(req: Request): Promise<Response>
+⋮----
+// 查询 users 获取用户详细信息
+⋮----
+// ----------------------------------------------------------------
+// 登出
+// ----------------------------------------------------------------
+async function handleLogout(req: Request): Promise<Response>
+</file>
+
+<file path="supabase/functions/messages/index.ts">
+// @ts-ignore Deno
+import { createAdminClient } from '../_shared/supabase.ts'
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { ok, err } from '../_shared/response.ts'
+import { analyzeContentModeration, submitModerationReport } from '../_shared/content-moderation.ts'
+⋮----
+interface AuthUser { id: string; email: string }
+⋮----
+function extractToken(req: Request): string | null
+⋮----
+async function getAuthUser(req: Request): Promise<AuthUser | null>
+⋮----
+async function requireAuth(req: Request): Promise<[AuthUser, null] | [null, Response]>
+</file>
+
+<file path="supabase/functions/users/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// users/index.ts — 用户资料管理
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+// 处理 CORS 预检
+⋮----
+// segments: [] → /users, ['uuid'] → /users/:id
+⋮----
+// GET /users → 搜索用户
+⋮----
+// GET /users/:id → 获取指定用户资料
+⋮----
+// PUT /users/:id → 更新用户资料
+⋮----
+// ----------------------------------------------------------------
+// GET /users/:id — 获取指定用户资料
+// ----------------------------------------------------------------
+async function handleGetUser(req: Request, userId: string): Promise<Response>
+⋮----
+// ----------------------------------------------------------------
+// PUT /users/:id — 更新用户资料
+// ----------------------------------------------------------------
+async function handleUpdateUser(req: Request, userId: string): Promise<Response>
+⋮----
+// 只能修改自己的资料
+⋮----
+// 验证 nickname（如果提供）
+⋮----
+// 检查昵称唯一性（排除当前用户）
+⋮----
+// 构建更新对象，只包含提供的字段
+⋮----
+// ----------------------------------------------------------------
+// GET /users — 搜索用户
+// ----------------------------------------------------------------
+async function handleSearch(req: Request, url: URL): Promise<Response>
+⋮----
+// ILIKE 匹配 nickname 或 major
+</file>
+
+<file path=".gitignore">
+/node_modules
+/doc
+/.trae
+# Added by code-review-graph
+.code-review-graph/
+/Files
+</file>
+
+<file path="frontend/package.json">
+{
+  "name": "quipster-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.6",
+    "@mui/material": "^6.1.6",
+    "@reduxjs/toolkit": "^2.3.0",
+    "@supabase/supabase-js": "^2.46.1",
+    "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.2",
+    "react-redux": "^9.1.2",
+    "react-router-dom": "^6.28.0",
+    "react-toastify": "^10.0.6",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.13.0",
+    "@typescript-eslint/parser": "^8.13.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.14.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}
+</file>
+
+<file path="frontend/src/pages/match/MatchPage.tsx">
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from '@mui/material'
+import { Close, Favorite, FavoriteBorder } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
+import { matchesApi } from '@/api/matches'
+import IcebreakerPanel from '@/components/chat/IcebreakerPanel'
+import type { IcebreakerSuggestion, MatchUser } from '@/types'
+⋮----
+type SlideDir = 'left' | 'right' | null
+⋮----
+// Pre-load more when near end
+⋮----
+const handleAction = async (action: 'like' | 'dislike') =>
+⋮----
+// ignore
+⋮----
+// Wait for animation then advance
+⋮----
+const getCardTransform = () =>
+⋮----
+{/* Empty state */}
+⋮----
+{/* Loading initial */}
+⋮----
+{/* Card */}
+⋮----
+{/* Avatar section */}
+⋮----
+{/* Info section */}
+⋮----
+{/* Match score */}
+⋮----
+{/* Common tags */}
+⋮----
+{/* Action buttons */}
+</file>
+
+<file path="frontend/src/pages/questions/QuestionDetailPage.tsx">
+import React, { useEffect, useState } from 'react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Alert,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { ArrowBack, AutoAwesome, CheckCircle, Refresh, Send } from '@mui/icons-material'
+import { format, formatDistanceToNow } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { questionsApi } from '@/api/questions'
+import { useAppSelector } from '@/store/hooks'
+import type { AiAnswer, Answer, Question } from '@/types'
+⋮----
+const formatTime = (iso: string) =>
+⋮----
+const timeAgo = (iso: string) =>
+⋮----
+// Load question
+⋮----
+const load = async () =>
+⋮----
+// Load answers
+⋮----
+const reloadAnswers = async () =>
+⋮----
+const handleSubmitAnswer = async () =>
+⋮----
+const handleGenerateAiAnswer = async (force = false) =>
+⋮----
+const handleAccept = async (answerId: string) =>
+⋮----
+// Mark accepted locally
+⋮----
+// A user can answer if: logged in, question is open (no accepted answer), and is NOT the questioner
+⋮----
+{/* Question */}
+⋮----
+{/* Tags */}
+⋮----
+{/* Asker Info */}
+⋮----
+生成时间：
+⋮----
+{/* Answers */}
+⋮----
+{/* Accept Button: only questioner, only if not yet accepted */}
+⋮----
+{/* Answer Input */}
+</file>
+
+<file path="frontend/src/pages/questions/QuestionsPage.tsx">
+import React, { useCallback, useEffect, useState } from 'react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material'
+import { Add, CheckCircle, QuestionAnswer } from '@mui/icons-material'
+import { formatDistanceToNow } from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { questionsApi } from '@/api/questions'
+import { tagsApi } from '@/api/tags'
+import { useAppSelector } from '@/store/hooks'
+import type { CreateQuestionDto, GetQuestionsParams, Question, Tag } from '@/types'
+⋮----
+type StatusFilter = 'all' | 'open' | 'closed'
+type SortFilter = 'latest' | 'hotests'
+⋮----
+// ─── Create Question Dialog ───────────────────────────────────────────────────
+⋮----
+interface CreateQuestionDialogProps {
+  open: boolean
+  onClose: () => void
+  allTags: Tag[]
+  onCreated: () => void
+}
+⋮----
+const handleTagChange = (e: SelectChangeEvent<number[]>) =>
+⋮----
+const handleSubmit = async () =>
+⋮----
+// ─── Question Card ────────────────────────────────────────────────────────────
+⋮----
+const truncate = (text: string, max = 120)
+⋮----
+const timeAgo = (iso: string) =>
+⋮----
+<CardActionArea onClick=
+⋮----
+{/* Title Row */}
+⋮----
+{/* Content Truncated */}
+⋮----
+{/* Footer */}
+⋮----
+// ─── Questions Page ───────────────────────────────────────────────────────────
+⋮----
+// Load tags
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps
+⋮----
+{/* Header */}
+⋮----
+{/* Filters Row */}
+⋮----
+{/* Status */}
+⋮----
+{/* Sort */}
+⋮----
+{/* Tag Filter */}
+⋮----
+onClick=
+⋮----
+onCreated=
+</file>
+
+<file path="frontend/src/types/index.ts">
+// ============================================================
+// 全局类型定义
+// ============================================================
+⋮----
+export interface ApiResponse<T = unknown> {
+  success: boolean
+  data?: T
+  message?: string
+  error?: {
+    code: string
+    message: string
+  }
+}
+⋮----
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: Pagination
+}
+⋮----
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  pages: number
+}
+⋮----
+// ============================================================
+// 用户相关
+// ============================================================
+⋮----
+export interface User {
+  id: string
+  email: string
+  nickname: string
+  avatar_url?: string
+  gender?: string
+  major?: string
+  grade?: string
+  bio?: string
+  credit_score: number
+  visibility: 0 | 1
+  created_at: string
+}
+⋮----
+export interface UserBasic {
+  id: string
+  nickname: string
+  avatar_url?: string
+  major?: string
+  grade?: string
+}
+⋮----
+export interface UpdateUserDto {
+  nickname?: string
+  avatar_url?: string
+  gender?: string
+  major?: string
+  grade?: string
+  bio?: string
+  visibility?: 0 | 1
+}
+⋮----
+export interface SearchUsersParams {
+  keyword?: string
+  major?: string
+  grade?: string
+  page?: number
+  limit?: number
+}
+⋮----
+// ============================================================
+// 认证相关
+// ============================================================
+⋮----
+export interface RegisterDto {
+  email: string
+  password: string
+  nickname: string
+}
+⋮----
+export interface LoginDto {
+  email: string
+  password: string
+}
+⋮----
+export interface Session {
+  access_token: string
+  refresh_token: string
+  expires_at: number
+}
+⋮----
+export interface LoginResponse {
+  success: boolean
+  message: string
+  session: Session
+  user: User
+}
+⋮----
+export interface RegisterResponse {
+  success: boolean
+  message: string
+  user: {
+    id: string
+    email: string
+  }
+}
+⋮----
+// ============================================================
+// 兴趣标签
+// ============================================================
+⋮----
+export interface Tag {
+  id: number
+  name: string
+  category: string
+}
+⋮----
+export interface UserTag {
+  tag_id: number
+  tag_name: string
+}
+⋮----
+// ============================================================
+// 匹配推荐
+// ============================================================
+⋮----
+export interface MatchUser {
+  user_id: string
+  nickname: string
+  avatar_url?: string
+  major?: string
+  common_tags: string[]
+  match_score: number
+}
+⋮----
+export interface MatchActionDto {
+  target_user_id: string
+  action: 'like' | 'dislike'
+}
+⋮----
+export interface MatchActionResponse {
+  success: boolean
+  is_matched: boolean
+  message: string
+  conversation_id?: string | number | null
+  icebreaker?: IcebreakerSuggestion | null
+}
+⋮----
+export interface IcebreakerSuggestion {
+  common_tags: string[]
+  opening_lines: string[]
+  topic_suggestions: string[]
+  interaction_ideas: string[]
+  mini_games: string[]
+  used_ai: boolean
+  model: string | null
+}
+⋮----
+// ============================================================
+// 即时聊天
+// ============================================================
+⋮----
+export interface Conversation {
+  conversation_id: string
+  name?: string
+  is_group?: boolean
+  peer_user: UserBasic | null
+  last_message?: {
+    content: string
+    created_at: string
+  }
+  unread_count: number
+}
+⋮----
+export interface Message {
+  id: string
+  sender_user_id: string
+  content: string
+  message_type: 'text' | 'image'
+  status: 'sent' | 'delivered' | 'read'
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  created_at: string
+}
+⋮----
+export interface SendMessageDto {
+  receiver_id?: string
+  conversation_id?: string | number
+  content: string
+  message_type?: 'text' | 'image'
+}
+⋮----
+export interface GetMessagesParams {
+  page?: number
+  limit?: number
+  before?: string
+}
+⋮----
+// ============================================================
+// 动态
+// ============================================================
+⋮----
+export interface Post {
+  id: string
+  user: UserBasic
+  content: string
+  images?: string[]
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  like_count: number
+  comment_count: number
+  is_liked: boolean
+  created_at: string
+}
+⋮----
+export interface Comment {
+  id: string
+  user: UserBasic
+  content: string
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  created_at: string
+}
+⋮----
+export interface CreatePostDto {
+  content: string
+  images?: string[]
+}
+⋮----
+export interface GetPostsParams {
+  page?: number
+  limit?: number
+  user_id?: string
+}
+⋮----
+// ============================================================
+// 兴趣社群
+// ============================================================
+⋮----
+export interface Group {
+  id: string | number
+  name: string
+  description?: string
+  avatar_url?: string
+  cover_url?: string
+  member_count: number
+  is_joined: boolean
+  my_role?: 'owner' | 'admin' | 'member' | null
+  creator_user_id?: string
+  created_at?: string
+  conversation_id?: string | number
+}
+⋮----
+export interface CreateGroupDto {
+  name: string
+  description?: string
+  avatar_url?: string
+  cover_url?: string
+  tags?: number[]
+}
+⋮----
+export interface UpdateGroupDto {
+  name?: string
+  description?: string
+  avatar_url?: string
+}
+⋮----
+export interface GroupMember {
+  user_id: string
+  nickname?: string
+  avatar_url?: string
+  role: 'owner' | 'admin' | 'member'
+  joined_at?: string
+}
+⋮----
+// ============================================================
+// 活动
+// ============================================================
+⋮----
+export interface Event {
+  id: string
+  title: string
+  description?: string
+  cover_url?: string
+  group_id?: number
+  organizer: UserBasic
+  start_time: string
+  end_time?: string
+  location?: string
+  max_participants?: number
+  current_participants: number
+  is_signed_up: boolean
+}
+⋮----
+export interface CreateEventDto {
+  title: string
+  description?: string
+  cover_url?: string
+  group_id?: number
+  start_time: string
+  end_time?: string
+  location?: string
+  max_participants?: number
+}
+⋮----
+export interface GetEventsParams {
+  keyword?: string
+  status?: 'upcoming' | 'on_going' | 'ended'
+  group_id?: number
+  page?: number
+  limit?: number
+}
+⋮----
+// ============================================================
+// 匿名树洞
+// ============================================================
+⋮----
+export interface AnonymousPost {
+  id: string
+  title: string
+  content: string
+  tags?: Array<{ id: number; name: string }>
+  emotion_type?: 'positive' | 'neutral' | 'anxiety' | 'stress' | 'sadness' | null
+  emotion_label?: string | null
+  emotion_score?: number | null
+  support_resources?: string[]
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  is_hot?: boolean
+  like_count: number
+  comment_count: number
+  is_liked: boolean
+  created_at: string
+}
+⋮----
+export interface AnonymousComment {
+  id: string
+  content: string
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  created_at: string
+}
+⋮----
+export interface CreateAnonymousPostDto {
+  title: string
+  content: string
+  tags?: number[]
+}
+⋮----
+export interface AnonymousSupportInfo {
+  emotion_type?: 'positive' | 'neutral' | 'anxiety' | 'stress' | 'sadness' | null
+  emotion_label?: string | null
+  emotion_score?: number | null
+  support_resources: string[]
+  audit_status?: 'pending' | 'passed' | 'flagged' | 'rejected'
+  support_posts: Array<{ id: string; title: string }>
+  support_events: Array<{ id: string; title: string; start_time?: string | null }>
+}
+⋮----
+export interface GetAnonymousPostsParams {
+  tag_id?: number
+  sort?: 'latest' | 'popular'
+  page?: number
+  limit?: number
+}
+⋮----
+// ============================================================
+// 校园问答
+// ============================================================
+⋮----
+export interface Question {
+  id: string
+  title: string
+  content: string
+  tags?: Array<{ id: number; name: string }>
+  category?: string
+  status?: 'open' | 'closed'
+  answer_count: number
+  has_accepted_answer: boolean
+  has_ai_answer?: boolean
+  user: UserBasic
+  created_at: string
+}
+⋮----
+export interface Answer {
+  id: string
+  content: string
+  user: UserBasic
+  is_accepted: boolean
+  like_count?: number
+  created_at: string
+}
+⋮----
+export interface AiAnswer {
+  id: string
+  question_id: string
+  content: string
+  created_at: string
+}
+⋮----
+export interface CreateQuestionDto {
+  title: string
+  content: string
+  tags?: number[]
+}
+⋮----
+export interface GetQuestionsParams {
+  tag_id?: number
+  status?: 'open' | 'closed'
+  sort?: 'latest' | 'hotests'
+  page?: number
+  limit?: number
+}
+⋮----
+// ============================================================
+// 学习搭子
+// ============================================================
+⋮----
+export interface StudyTask {
+  id: string
+  title: string
+  description?: string
+  tags: Array<{ id: number; name: string }>
+  target_count: number
+  current_count: number
+  creator: UserBasic
+  status: 'open' | 'closed'
+  created_at: string
+}
+⋮----
+export interface CreateStudyTaskDto {
+  title: string
+  description?: string
+  tags?: number[]
+  target_count: number
+}
+⋮----
+export interface GetStudyTasksParams {
+  tag_id?: number
+  status?: 'open' | 'closed'
+  page?: number
+  limit?: number
+}
+⋮----
+// ============================================================
+// 社区治理
+// ============================================================
+⋮----
+export interface ReportDto {
+  target_type: 'user' | 'post' | 'comment' | 'message'
+  target_id: string
+  reason: string
+  description?: string
+}
+⋮----
+export interface CreditRecord {
+  type: 'increase' | 'decrease'
+  amount: number
+  reason: string
+  created_at: string
+}
+⋮----
+export interface CreditInfo {
+  credit_score: number
+  level: string
+  records: CreditRecord[]
+}
+⋮----
+// ============================================================
+// Redux State 相关
+// ============================================================
+⋮----
+export interface AuthState {
+  user: User | null
+  session: Session | null
+  loading: boolean
+  error: string | null
+}
+</file>
+
+<file path="supabase/functions/anonymous-posts/index.ts">
+// @ts-ignore Deno
+import { handleCors } from './cors.ts'
+import { createAdminClient } from './supabase.ts'
+import { ok, err, buildPagination, parsePagination } from './response.ts'
+import { requireAuth, getPathSegments } from './auth.ts'
+import { persistEmotionAnalysis, summarizeEmotionLabel } from '../_shared/emotion-support.ts'
+import { analyzeContentModeration, submitModerationReport } from '../_shared/content-moderation.ts'
+⋮----
+// ============================================================
+// anonymous-posts/index.ts — 匿名树洞
+//
+// 重要：所有响应中绝对不返回 user_id（匿名！）
+//
+// GET  /anonymous-posts                → 列表（tag, sort, 分页）
+// GET  /anonymous-posts/:id            → 详情
+// GET  /anonymous-posts/:id/comments   → 评论列表
+// GET  /anonymous-posts/:id/support    → 情绪支持信息
+// POST /anonymous-posts                → 发帖
+// POST /anonymous-posts/:id/analyze-emotion → 手动重算情绪识别
+// POST /anonymous-posts/:id/like       → 点赞 / 取消点赞（toggle）
+// POST /anonymous-posts/:id/comment    → 评论
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+function isNumericString(value: string | null | undefined): boolean
+⋮----
+async function resolveAnonymousTagMap(db: ReturnType<typeof createAdminClient>, rawTags: Array<string | null | undefined>)
+⋮----
+function buildAnonymousTagObjects(rawTag: string | null | undefined, tagMap: Map<number, string>)
+⋮----
+async function listPosts(req: Request, url: URL): Promise<Response>
+⋮----
+async function getPostDetail(req: Request, postId: string): Promise<Response>
+⋮----
+async function listComments(req: Request, postId: string): Promise<Response>
+⋮----
+async function getSupportInfo(req: Request, postId: string): Promise<Response>
+⋮----
+async function createPost(req: Request): Promise<Response>
+⋮----
+async function analyzeEmotion(req: Request, postId: string): Promise<Response>
+⋮----
+async function toggleLike(req: Request, postId: string): Promise<Response>
+⋮----
+async function addComment(req: Request, postId: string): Promise<Response>
+</file>
+
+<file path="supabase/functions/conversations/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// @ts-ignore Deno
+</file>
+
+<file path="supabase/functions/credit/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err } from '../_shared/response.ts'
+import { requireAuth } from '../_shared/auth.ts'
+⋮----
+/** 根据信用分计算等级 */
+function getCreditLevel(score: number): string
+⋮----
+// @ts-ignore Deno
+⋮----
+// CORS 预检处理
+⋮----
+// ── GET /credit ── 获取当前用户信用信息 ──────────────────────────
+⋮----
+// 查询信用分
+⋮----
+// 查询最近 50 条信用记录
+</file>
+
+<file path="supabase/functions/groups/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// groups/index.ts — 兴趣社群
+//
+// GET  /groups            → 社群列表（keyword 搜索，分页）
+// POST /groups            → 创建社群
+// GET  /groups/:id        → 获取社群详情
+// PUT  /groups/:id        → 编辑社群
+// POST /groups/:id/join   → 加入社群
+// POST /groups/:id/leave  → 退出社群
+// GET  /groups/:id/chat   → 获取社群聊天会话ID
+// GET  /groups/:id/members → 获取社群成员列表
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+async function listGroups(req: Request, url: URL): Promise<Response>
+⋮----
+async function getGroup(req: Request, groupIdStr: string): Promise<Response>
+⋮----
+async function getGroupChat(req: Request, groupIdStr: string): Promise<Response>
+⋮----
+async function updateGroup(req: Request, groupIdStr: string): Promise<Response>
+⋮----
+async function createGroup(req: Request): Promise<Response>
+⋮----
+async function joinGroup(req: Request, groupIdStr: string): Promise<Response>
+⋮----
+async function leaveGroup(req: Request, groupIdStr: string): Promise<Response>
+⋮----
+async function getGroupMembers(req: Request, groupIdStr: string, url: URL): Promise<Response>
+</file>
+
+<file path="supabase/functions/posts/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { analyzeContentModeration, submitModerationReport } from '../_shared/content-moderation.ts'
+⋮----
+// @ts-ignore Deno
+⋮----
+// CORS 预检处理
+⋮----
+// ── GET /posts ── 动态列表 ─────────────────────────────────────
+⋮----
+// 查询 posts，关联 users 获取用户信息
+⋮----
+// ── POST /posts ── 发布动态 ────────────────────────────────────
+⋮----
+// ── POST /posts/:id/like ── 点赞/取消点赞 ──────────────────────
+⋮----
+// ── POST /posts/:id/comment ── 评论 ────────────────────────────
+⋮----
+// ── GET /posts/:id/comments ── 获取评论列表 ────────────────────
+</file>
+
+<file path="supabase/functions/study-tasks/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// study-tasks/index.ts — 学习搭子
+//
+// 使用 activities 表，task_type 区分学习任务
+//
+// GET  /study-tasks              → 任务列表（分页）
+// POST /study-tasks              → 发布任务
+// POST /study-tasks/:id/join     → 申请加入
+// ============================================================
+⋮----
+// @ts-ignore Deno
+</file>
+
+<file path="supabase/functions/events/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+⋮----
+// ============================================================
+// events/index.ts — 校园活动
+//
+// GET  /events              → 活动列表（keyword, status, group_id 过滤，分页）
+// POST /events              → 创建活动（支持社群活动）
+// POST /events/:id/signup   → 报名活动
+// ============================================================
+⋮----
+// @ts-ignore Deno
+⋮----
+async function listEvents(req: Request, url: URL): Promise<Response>
+⋮----
+async function createEvent(req: Request): Promise<Response>
+⋮----
+async function signupEvent(req: Request, eventId: string): Promise<Response>
+</file>
+
+<file path="supabase/functions/matches/index.ts">
+// @ts-ignore Deno
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { handleCors } from '../_shared/cors.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { generateIcebreakerSuggestions } from '../_shared/chat-icebreaker.ts'
+⋮----
+function createAdminClient(): SupabaseClient
+⋮----
+type MatchAction = 'like' | 'dislike' | 'pass' | 'super_like'
+⋮----
+function normalizeAction(action: string): MatchAction | null
+⋮----
+function storageAction(action: MatchAction): 'like' | 'pass' | 'super_like'
+⋮----
+async function findExistingConversation(
+  supabase: SupabaseClient,
+  userA: string,
+  userB: string
+): Promise<number | null>
+</file>
+
+<file path="supabase/functions/questions/index.ts">
+// @ts-ignore Deno
+import { handleCors } from '../_shared/cors.ts'
+import { createAdminClient } from '../_shared/supabase.ts'
+import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
+import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { generateAndStoreAiAnswer, getStoredAiAnswer, type QuestionContext } from '../_shared/ai-qa.ts'
+⋮----
+// @ts-ignore Deno
+</file>
+
+</files>

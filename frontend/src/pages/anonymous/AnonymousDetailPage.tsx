@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -10,14 +11,29 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { ArrowBack, Comment, Favorite, FavoriteBorder, Send } from '@mui/icons-material'
+import { ArrowBack, AutoAwesome, Comment, Favorite, FavoriteBorder, Refresh, Send, WarningAmber } from '@mui/icons-material'
 import { format, formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { anonymousApi } from '@/api/anonymous'
 import { useAppSelector } from '@/store/hooks'
-import type { AnonymousComment, AnonymousPost } from '@/types'
+import type { AnonymousComment, AnonymousPost, AnonymousSupportInfo } from '@/types'
+
+const emotionColorMap: Record<string, 'success' | 'default' | 'warning' | 'error'> = {
+  positive: 'success',
+  neutral: 'default',
+  anxiety: 'warning',
+  stress: 'warning',
+  sadness: 'error',
+}
+
+const auditLabelMap: Record<string, string> = {
+  pending: '待审',
+  passed: '通过',
+  flagged: '已标记',
+  rejected: '已拒绝',
+}
 
 const AnonymousDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>()
@@ -25,36 +41,17 @@ const AnonymousDetailPage: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user)
 
   const [post, setPost] = useState<AnonymousPost | null>(null)
+  const [supportInfo, setSupportInfo] = useState<AnonymousSupportInfo | null>(null)
   const [comments, setComments] = useState<AnonymousComment[]>([])
   const [loadingPost, setLoadingPost] = useState(true)
+  const [loadingComments, setLoadingComments] = useState(false)
+  const [loadingSupport, setLoadingSupport] = useState(false)
   const [liking, setLiking] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [analyzingEmotion, setAnalyzingEmotion] = useState(false)
 
   const commentInputRef = useRef<HTMLInputElement>(null)
-
-  // Load post by scanning list (no dedicated GET /anonymous-posts/:id endpoint)
-  useEffect(() => {
-    if (!postId) return
-    const load = async () => {
-      try {
-        setLoadingPost(true)
-        // Load multiple pages if needed; for now fetch with high limit
-        const res = await anonymousApi.getPosts({ limit: 100, sort: 'latest' })
-        const found = (res.data.data ?? []).find((p) => p.id === postId) ?? null
-        setPost(found)
-      } catch {
-        toast.error('加载失败')
-      } finally {
-        setLoadingPost(false)
-      }
-    }
-    load()
-  }, [postId])
-
-  // Note: The current API does not expose a GET comments endpoint for anonymous posts.
-  // Comments are submitted via POST and echoed back; we maintain a local list.
-  // If a future API provides GET /anonymous-posts/:id/comments, replace this.
 
   const formatTime = (iso: string) => {
     try {
@@ -71,6 +68,54 @@ const AnonymousDetailPage: React.FC = () => {
       return iso
     }
   }
+
+  useEffect(() => {
+    if (!postId) return
+    const load = async () => {
+      try {
+        setLoadingPost(true)
+        const res = await anonymousApi.getPost(postId)
+        setPost(res.data.data ?? null)
+      } catch {
+        toast.error('加载帖子失败')
+      } finally {
+        setLoadingPost(false)
+      }
+    }
+    load()
+  }, [postId])
+
+  useEffect(() => {
+    if (!postId) return
+    const load = async () => {
+      try {
+        setLoadingComments(true)
+        const res = await anonymousApi.getComments(postId)
+        setComments(res.data.data ?? [])
+      } catch {
+        setComments([])
+      } finally {
+        setLoadingComments(false)
+      }
+    }
+    load()
+  }, [postId])
+
+  useEffect(() => {
+    if (!postId) return
+    const load = async () => {
+      try {
+        setLoadingSupport(true)
+        const res = await anonymousApi.getSupportInfo(postId)
+        setSupportInfo(res.data.data ?? null)
+      } catch {
+        setSupportInfo(null)
+      } finally {
+        setLoadingSupport(false)
+      }
+    }
+    load()
+  }, [postId])
 
   const handleLike = async () => {
     if (!post) return
@@ -106,6 +151,30 @@ const AnonymousDetailPage: React.FC = () => {
     }
   }
 
+  const handleAnalyzeEmotion = async () => {
+    if (!postId || !post) return
+    try {
+      setAnalyzingEmotion(true)
+      const res = await anonymousApi.analyzeEmotion(postId)
+      const newSupportInfo = res.data.data ?? null
+      setSupportInfo(newSupportInfo)
+      if (newSupportInfo) {
+        setPost({
+          ...post,
+          emotion_type: newSupportInfo.emotion_type ?? null,
+          emotion_label: newSupportInfo.emotion_label ?? null,
+          emotion_score: newSupportInfo.emotion_score ?? null,
+          support_resources: newSupportInfo.support_resources,
+        })
+      }
+      toast.success('情绪识别已更新')
+    } catch {
+      toast.error('情绪识别失败，请稍后重试')
+    } finally {
+      setAnalyzingEmotion(false)
+    }
+  }
+
   if (loadingPost) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -125,11 +194,15 @@ const AnonymousDetailPage: React.FC = () => {
     )
   }
 
+  const emotionType = supportInfo?.emotion_type ?? post.emotion_type
+  const emotionLabel = supportInfo?.emotion_label ?? post.emotion_label
+  const emotionScore = supportInfo?.emotion_score ?? post.emotion_score
+  const supportResources = supportInfo?.support_resources ?? post.support_resources ?? []
+
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
       <Button startIcon={<ArrowBack />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>返回</Button>
 
-      {/* Post Content */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
           {post.title}
@@ -141,7 +214,7 @@ const AnonymousDetailPage: React.FC = () => {
         {post.tags && post.tags.length > 0 && (
           <Box display="flex" flexWrap="wrap" gap={0.5} mb={2}>
             {post.tags.map((tag) => (
-              <Chip key={tag.id} label={tag.name} size="small" variant="outlined" />
+              <Chip key={`${tag.id}-${tag.name}`} label={tag.name} size="small" variant="outlined" />
             ))}
           </Box>
         )}
@@ -150,9 +223,17 @@ const AnonymousDetailPage: React.FC = () => {
           {post.content}
         </Typography>
 
+        {post.audit_status && post.audit_status !== 'passed' && (
+          <Box mt={1.5} display="flex" alignItems="center" gap={0.75}>
+            <WarningAmber fontSize="small" color="warning" />
+            <Typography variant="caption" color="warning.main">
+              风险标记：{auditLabelMap[post.audit_status] ?? post.audit_status}
+            </Typography>
+          </Box>
+        )}
+
         <Divider sx={{ my: 2 }} />
 
-        {/* Actions */}
         <Box display="flex" alignItems="center" gap={3}>
           <Box
             display="flex"
@@ -181,13 +262,122 @@ const AnonymousDetailPage: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* Comments */}
+      <Paper sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'warning.light', bgcolor: 'warning.50' }}>
+        <Box display="flex" alignItems="flex-start" justifyContent="space-between" gap={2} mb={1.5}>
+          <Box>
+            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+              <AutoAwesome color="warning" fontSize="small" />
+              <Typography variant="h6" fontWeight={700}>AI 情绪识别</Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              用于识别树洞文本中的情绪倾向，并在负面情绪较明显时提供支持建议。
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={analyzingEmotion ? <CircularProgress size={14} color="inherit" /> : <Refresh />}
+            onClick={handleAnalyzeEmotion}
+            disabled={analyzingEmotion}
+          >
+            重新识别
+          </Button>
+        </Box>
+
+        {loadingSupport ? (
+          <Box display="flex" justifyContent="center" py={2}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : emotionType ? (
+          <>
+            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" mb={1.5}>
+              <Chip
+                label={emotionLabel ?? '已识别'}
+                color={emotionColorMap[emotionType] ?? 'default'}
+                size="small"
+              />
+              {typeof emotionScore === 'number' && (
+                <Typography variant="body2" color="text.secondary">
+                  置信度约 {(emotionScore * 100).toFixed(0)}%
+                </Typography>
+              )}
+            </Box>
+
+            {supportResources.length > 0 ? (
+              <Box>
+                {supportResources.map((item, index) => (
+                  <Typography key={`${index}-${item.slice(0, 16)}`} variant="body2" sx={{ lineHeight: 1.8, mb: 1 }}>
+                    {index + 1}. {item}
+                  </Typography>
+                ))}
+              </Box>
+            ) : (
+              <Alert severity="info">当前文本未触发额外支持建议。</Alert>
+            )}
+
+            {(supportInfo?.support_posts?.length ?? 0) > 0 && (
+              <Box mt={2}>
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>相关树洞</Typography>
+                {supportInfo?.support_posts.map((item) => (
+                  <Box
+                    key={item.id}
+                    onClick={() => navigate(`/anonymous/${item.id}`)}
+                    sx={{
+                      py: 0.5,
+                      px: 1,
+                      mb: 0.5,
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
+                  >
+                    <Typography variant="body2" color="primary.main">
+                      • {item.title}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {(supportInfo?.support_events?.length ?? 0) > 0 && (
+              <Box mt={2}>
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>推荐活动</Typography>
+                {supportInfo?.support_events.map((item) => (
+                  <Box
+                    key={item.id}
+                    onClick={() => navigate(`/events/${item.id}`)}
+                    sx={{
+                      py: 0.5,
+                      px: 1,
+                      mb: 0.5,
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
+                  >
+                    <Typography variant="body2" color="primary.main">
+                      • {item.title}{item.start_time ? ` · ${formatTime(item.start_time)}` : ''}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </>
+        ) : (
+          <Alert severity="info">当前还没有生成情绪识别结果，你可以手动触发一次分析。</Alert>
+        )}
+      </Paper>
+
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="subtitle1" fontWeight={600} gutterBottom>
           评论 ({comments.length})
         </Typography>
 
-        {comments.length === 0 ? (
+        {loadingComments ? (
+          <Box display="flex" justifyContent="center" py={2}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : comments.length === 0 ? (
           <Box py={3} textAlign="center">
             <Typography variant="body2" color="text.secondary">暂无评论，来说点什么吧～</Typography>
           </Box>
@@ -199,6 +389,14 @@ const AnonymousDetailPage: React.FC = () => {
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
                   {comment.content}
                 </Typography>
+                {comment.audit_status && comment.audit_status !== 'passed' && (
+                  <Box mt={0.5} display="flex" alignItems="center" gap={0.5}>
+                    <WarningAmber fontSize="inherit" color="warning" />
+                    <Typography variant="caption" color="warning.main">
+                      风险标记：{auditLabelMap[comment.audit_status] ?? comment.audit_status}
+                    </Typography>
+                  </Box>
+                )}
                 <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
                   {timeAgo(comment.created_at)}
                 </Typography>
@@ -208,7 +406,6 @@ const AnonymousDetailPage: React.FC = () => {
         )}
       </Paper>
 
-      {/* Comment Input */}
       <Paper sx={{ p: 2 }}>
         <Typography variant="subtitle2" fontWeight={600} gutterBottom>发表评论</Typography>
         <Box display="flex" gap={1} alignItems="flex-end">

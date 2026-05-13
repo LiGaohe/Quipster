@@ -3,6 +3,7 @@ import { handleCors } from '../_shared/cors.ts'
 import { createAdminClient } from '../_shared/supabase.ts'
 import { ok, err, buildPagination, parsePagination } from '../_shared/response.ts'
 import { requireAuth, getPathSegments } from '../_shared/auth.ts'
+import { analyzeContentModeration, submitModerationReport } from '../_shared/content-moderation.ts'
 
 // @ts-ignore Deno
 Deno.serve(async (req: Request) => {
@@ -134,14 +135,40 @@ Deno.serve(async (req: Request) => {
       if (image_urls.length > 9) return err('最多上传 9 张图片', 400)
 
       const supabase = createAdminClient()
+      const moderation = await analyzeContentModeration({
+        target_type: 'post',
+        content: content.trim(),
+      })
 
       const { data: newPost, error: insertErr } = await supabase
         .from('posts')
-        .insert({ user_id: me, content: content.trim(), image_urls, type: 'post' })
-        .select('id, user_id, content, image_urls, created_at')
+        .insert({
+          user_id: me,
+          content: content.trim(),
+          image_urls,
+          type: 'post',
+          audit_status: moderation.audit_status,
+          audited_by: moderation.needs_admin_review ? null : me,
+          audited_at: moderation.needs_admin_review ? null : new Date().toISOString(),
+        })
+        .select('id, user_id, content, image_urls, created_at, audit_status')
         .single()
 
       if (insertErr) return err(insertErr.message, 500)
+
+      if (moderation.needs_admin_review) {
+        await submitModerationReport(
+          supabase,
+          me,
+          { target_type: 'post', target_id: newPost.id },
+          moderation.summary,
+          [
+            `风险等级：${moderation.risk_level}`,
+            `命中关键词：${moderation.matched_keywords.join('、') || '无'}`,
+            ...moderation.reasons,
+          ]
+        )
+      }
 
       const { data: profile } = await supabase
         .from('users')
@@ -156,6 +183,7 @@ Deno.serve(async (req: Request) => {
           user: profile ?? { id: me, nickname: null, avatar_url: null },
           content: newPost.content,
           images: newPost.image_urls ?? [],
+          audit_status: newPost.audit_status,
           like_count: 0,
           comment_count: 0,
           is_liked: false,
@@ -247,6 +275,10 @@ Deno.serve(async (req: Request) => {
       if (!content || content.trim() === '') return err('评论内容不能为空', 400)
 
       const supabase = createAdminClient()
+      const moderation = await analyzeContentModeration({
+        target_type: 'comment',
+        content: content.trim(),
+      })
 
       const { data: postRow, error: postCheckErr } = await supabase
         .from('posts')
@@ -260,8 +292,16 @@ Deno.serve(async (req: Request) => {
 
       const { data: newComment, error: commentErr } = await supabase
         .from('posts')
-        .insert({ post_id: postId, user_id: me, content: content.trim(), type: 'comment' })
-        .select('id, content, created_at')
+        .insert({
+          post_id: postId,
+          user_id: me,
+          content: content.trim(),
+          type: 'comment',
+          audit_status: moderation.audit_status,
+          audited_by: moderation.needs_admin_review ? null : me,
+          audited_at: moderation.needs_admin_review ? null : new Date().toISOString(),
+        })
+        .select('id, content, created_at, audit_status')
         .single()
 
       if (commentErr) return err(commentErr.message, 500)
@@ -278,6 +318,7 @@ Deno.serve(async (req: Request) => {
           id: newComment.id,
           user: profile ?? { id: me, nickname: null, avatar_url: null },
           content: newComment.content,
+          audit_status: newComment.audit_status,
           created_at: newComment.created_at,
         },
       }, 201)
@@ -304,6 +345,7 @@ Deno.serve(async (req: Request) => {
           id,
           content,
           created_at,
+          audit_status,
           users!posts_user_id_fkey(id, nickname, avatar_url)
         `)
         .eq('type', 'comment')
@@ -316,6 +358,7 @@ Deno.serve(async (req: Request) => {
         id: c.id,
         user: c.users ?? { id: null, nickname: null, avatar_url: null },
         content: c.content,
+        audit_status: c.audit_status,
         created_at: c.created_at,
       }))
 

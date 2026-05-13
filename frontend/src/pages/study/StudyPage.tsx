@@ -13,13 +13,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  InputLabel,
   LinearProgress,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  type SelectChangeEvent,
   Snackbar,
   Stack,
   TextField,
@@ -31,28 +25,21 @@ import { Add, Group, Person } from '@mui/icons-material'
 import { format, parseISO } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { studyApi } from '@/api/study'
-import { tagsApi } from '@/api/tags'
-import type { StudyTask, Tag } from '@/types'
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import type { StudyTask } from '@/types'
 
 type StatusFilter = 'all' | 'open' | 'closed'
 
 interface CreateFormState {
   title: string
   description: string
-  tags: number[]
   target_count: number | ''
 }
 
 const DEFAULT_FORM: CreateFormState = {
   title: '',
   description: '',
-  tags: [],
   target_count: 2,
 }
-
-// ─── StudyTaskCard ─────────────────────────────────────────────────────────────
 
 interface StudyTaskCardProps {
   task: StudyTask
@@ -108,7 +95,6 @@ const StudyTaskCard: React.FC<StudyTaskCardProps> = ({ task, onJoin, joining }) 
           </Typography>
         )}
 
-        {/* Creator */}
         <Box display="flex" alignItems="center" gap={0.75} mb={1.5}>
           <Avatar
             src={task.creator.avatar_url}
@@ -122,7 +108,6 @@ const StudyTaskCard: React.FC<StudyTaskCardProps> = ({ task, onJoin, joining }) 
           </Typography>
         </Box>
 
-        {/* Progress bar */}
         <Box mb={1}>
           <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.4}>
             <Box display="flex" alignItems="center" gap={0.5}>
@@ -143,16 +128,6 @@ const StudyTaskCard: React.FC<StudyTaskCardProps> = ({ task, onJoin, joining }) 
           />
         </Box>
 
-        {/* Tags */}
-        {task.tags.length > 0 && (
-          <Box display="flex" flexWrap="wrap" gap={0.5} mb={1.5}>
-            {task.tags.map((tag) => (
-              <Chip key={tag.id} label={tag.name} size="small" variant="outlined" />
-            ))}
-          </Box>
-        )}
-
-        {/* Footer: time + action */}
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="caption" color="text.secondary">
             {format(parseISO(task.created_at), 'MM月dd日 HH:mm', { locale: zhCN })}
@@ -164,15 +139,13 @@ const StudyTaskCard: React.FC<StudyTaskCardProps> = ({ task, onJoin, joining }) 
             onClick={() => onJoin(task.id)}
             startIcon={<Person />}
           >
-            申请加入
+            加入
           </Button>
         </Box>
       </CardContent>
     </Card>
   )
 }
-
-// ─── StudyPage ─────────────────────────────────────────────────────────────────
 
 const StudyPage: React.FC = () => {
   const [tasks, setTasks] = useState<StudyTask[]>([])
@@ -181,11 +154,7 @@ const StudyPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [tagFilter, setTagFilter] = useState<number | ''>('')
 
-  const [allTags, setAllTags] = useState<Tag[]>([])
-
-  // Join state
   const [joiningId, setJoiningId] = useState<string | null>(null)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
@@ -193,29 +162,17 @@ const StudyPage: React.FC = () => {
     severity: 'success',
   })
 
-  // Create dialog
   const [dialogOpen, setDialogOpen] = useState(false)
   const [form, setForm] = useState<CreateFormState>(DEFAULT_FORM)
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  // ── Load tags ──
-  useEffect(() => {
-    tagsApi.getAllTags().then((res) => {
-      if (res.data.success && res.data.data) {
-        setAllTags(res.data.data)
-      }
-    })
-  }, [])
-
-  // ── Fetch tasks ──
   const fetchTasks = useCallback(
     async (nextPage: number, replace: boolean) => {
       setLoading(true)
       try {
         const res = await studyApi.getTasks({
           status: statusFilter !== 'all' ? statusFilter : undefined,
-          tag_id: tagFilter !== '' ? tagFilter : undefined,
           page: nextPage,
           limit: 10,
         })
@@ -230,32 +187,30 @@ const StudyPage: React.FC = () => {
         setLoading(false)
       }
     },
-    [statusFilter, tagFilter]
+    [statusFilter]
   )
 
   useEffect(() => {
     fetchTasks(1, true)
   }, [fetchTasks])
 
-  // ── Join task ──
   const handleJoin = async (taskId: string) => {
     setJoiningId(taskId)
     try {
       const res = await studyApi.joinTask(taskId)
       if (res.data.success) {
-        setSnackbar({ open: true, message: '申请已提交', severity: 'success' })
+        setSnackbar({ open: true, message: '加入成功', severity: 'success' })
         fetchTasks(1, true)
       } else {
-        setSnackbar({ open: true, message: res.data.message ?? '申请失败', severity: 'error' })
+        setSnackbar({ open: true, message: res.data.message ?? '加入失败', severity: 'error' })
       }
     } catch {
-      setSnackbar({ open: true, message: '申请失败，请稍后重试', severity: 'error' })
+      setSnackbar({ open: true, message: '加入失败，请稍后重试', severity: 'error' })
     } finally {
       setJoiningId(null)
     }
   }
 
-  // ── Create task ──
   const handleCreateSubmit = async () => {
     if (!form.title.trim()) {
       setFormError('任务标题不能为空')
@@ -271,7 +226,6 @@ const StudyPage: React.FC = () => {
       const res = await studyApi.createTask({
         title: form.title.trim(),
         description: form.description.trim() || undefined,
-        tags: form.tags.length > 0 ? form.tags : undefined,
         target_count: Number(form.target_count),
       })
       if (res.data.success) {
@@ -298,7 +252,6 @@ const StudyPage: React.FC = () => {
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
-      {/* Header */}
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h5" fontWeight={700}>
           学习搭子
@@ -313,8 +266,7 @@ const StudyPage: React.FC = () => {
         </Button>
       </Box>
 
-      {/* Filters */}
-      <Stack spacing={1.5} mb={3}>
+      <Box mb={3}>
         <ToggleButtonGroup
           exclusive
           value={statusFilter}
@@ -326,36 +278,14 @@ const StudyPage: React.FC = () => {
           <ToggleButton value="open">招募中</ToggleButton>
           <ToggleButton value="closed">已满</ToggleButton>
         </ToggleButtonGroup>
+      </Box>
 
-        {allTags.length > 0 && (
-          <FormControl size="small" fullWidth>
-            <InputLabel>标签筛选</InputLabel>
-            <Select
-              value={tagFilter}
-              label="标签筛选"
-              onChange={(e: SelectChangeEvent<number | ''>) =>
-                setTagFilter(e.target.value as number | '')
-              }
-            >
-              <MenuItem value="">全部标签</MenuItem>
-              {allTags.map((tag) => (
-                <MenuItem key={tag.id} value={tag.id}>
-                  {tag.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-      </Stack>
-
-      {/* Loading */}
       {loading && tasks.length === 0 && (
         <Box display="flex" justifyContent="center" py={6}>
           <CircularProgress />
         </Box>
       )}
 
-      {/* Empty state */}
       {!loading && tasks.length === 0 && (
         <Box textAlign="center" py={8}>
           <Typography variant="body1" color="text.secondary">
@@ -367,7 +297,6 @@ const StudyPage: React.FC = () => {
         </Box>
       )}
 
-      {/* Task list */}
       <Stack spacing={2}>
         {tasks.map((task) => (
           <StudyTaskCard
@@ -379,7 +308,6 @@ const StudyPage: React.FC = () => {
         ))}
       </Stack>
 
-      {/* Load more */}
       {hasMore && !loading && (
         <Box display="flex" justifyContent="center" mt={3}>
           <Button onClick={() => fetchTasks(page + 1, false)} variant="outlined" size="small">
@@ -393,7 +321,6 @@ const StudyPage: React.FC = () => {
         </Box>
       )}
 
-      {/* ── Create Task Dialog ── */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="sm">
         <DialogTitle>发起学习任务</DialogTitle>
         <DialogContent>
@@ -417,28 +344,6 @@ const StudyPage: React.FC = () => {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="详细描述一下你的学习计划..."
             />
-            <FormControl size="small" fullWidth>
-              <InputLabel>标签（可多选）</InputLabel>
-              <Select
-                multiple
-                value={form.tags}
-                onChange={(e: SelectChangeEvent<number[]>) =>
-                  setForm((f) => ({ ...f, tags: e.target.value as number[] }))
-                }
-                input={<OutlinedInput label="标签（可多选）" />}
-                renderValue={(selected) =>
-                  (selected as number[])
-                    .map((id) => allTags.find((t) => t.id === id)?.name ?? id)
-                    .join(', ')
-                }
-              >
-                {allTags.map((tag) => (
-                  <MenuItem key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
             <TextField
               label="目标人数"
               required
@@ -472,7 +377,6 @@ const StudyPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

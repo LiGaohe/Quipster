@@ -1,0 +1,17 @@
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+/node_modules
+/doc
+/.trae
+# Added by code-review-graph
+.code-review-graph/
+/Files
+supabase/migrations/
+supabase/migrations_backup/
+supabase/.temp/
+frontend/node_modules/
+.vscode/
+.marp/
+.agents/
