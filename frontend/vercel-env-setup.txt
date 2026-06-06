@@ -1,0 +1,14 @@
+# Vercel 环境变量配置命令
+# 在 frontend 目录执行以下命令：
+
+vercel env add VITE_SUPABASE_URL production
+# 输入: https://atvnnhjlouscahugvsee.supabase.co
+
+vercel env add VITE_SUPABASE_ANON_KEY production
+# 输入: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0dm5uaGpsb3VzY2FodWd2c2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MjE2MzMsImV4cCI6MjA5MDQ5NzYzM30.ZlZffGs63PEfa0f8X9tjFienw0vX9IguH6bdFE8iuJI
+
+vercel env add VITE_API_BASE_URL production
+# 输入: https://atvnnhjlouscahugvsee.supabase.co/functions/v1
+
+# 添加完后重新部署
+vercel --prod

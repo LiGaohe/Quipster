@@ -60,6 +60,7 @@ async function listEvents(req: Request, url: URL): Promise<Response> {
        event_time, start_time, end_time, location, max_participants, created_at`,
       { count: 'exact' }
     )
+    .eq('activity_type', 'event')
     .order('event_time', { ascending: true })
     .range(offset, offset + limit - 1)
 

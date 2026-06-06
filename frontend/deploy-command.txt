@@ -1,0 +1,15 @@
+# 部署到 Vercel 的命令
+
+# 1. 在 frontend 目录执行
+cd frontend
+
+# 2. 部署到生产环境
+vercel --prod
+
+# 3. 查看部署信息
+vercel ls
+
+# 4. 查看域名绑定状态
+vercel domains
+
+```

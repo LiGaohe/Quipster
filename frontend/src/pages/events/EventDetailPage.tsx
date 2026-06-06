@@ -40,12 +40,13 @@ const EventDetailPage: React.FC = () => {
     const load = async () => {
       try {
         setLoading(true)
-        // Fetch single event by loading the events list and finding the matching one.
-        // (No dedicated GET /events/:id endpoint in current API — fetch list with large limit
-        //  and find the item, or just load the first page and rely on list state.)
         const res = await eventsApi.getEvents({ limit: 100 })
         const found = (res.data.data ?? []).find((e) => e.id === eventId) ?? null
-        setEvent(found)
+        if (found && found.end_time && new Date(found.end_time) < new Date()) {
+          setEvent(null)
+        } else {
+          setEvent(found)
+        }
       } catch {
         toast.error('加载活动详情失败')
       } finally {
@@ -105,7 +106,7 @@ const EventDetailPage: React.FC = () => {
   }
 
   const isFull =
-    event.max_participants !== undefined &&
+    event.max_participants != null &&
     event.current_participants >= event.max_participants
 
   const participantPercent =

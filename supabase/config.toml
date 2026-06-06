@@ -54,3 +54,6 @@ enable_confirmations = true
 
 [functions.auth]
 verify_jwt = false
+
+[functions.health]
+verify_jwt = false

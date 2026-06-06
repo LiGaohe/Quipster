@@ -15,6 +15,18 @@
       "source": "jwynia/agent-skills",
       "sourceType": "github",
       "computedHash": "cc83e20ff7b7df6ada2eada0a92843fe0e726cdffd40a8fd3297de3a8678be6e"
+    },
+    "remotion-best-practices": {
+      "source": "remotion-dev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/remotion/SKILL.md",
+      "computedHash": "d9457a606202a23c28b4c17b2611c65ecc09311ce46a5d93ffe8493d2e8ea4f3"
+    },
+    "script-writer": {
+      "source": "ailabs-393/ai-labs-claude-skills",
+      "sourceType": "github",
+      "skillPath": "packages/skills/script-writer/SKILL.md",
+      "computedHash": "ce5a1bfe17aa583451676436485eb655e677a87da0d164b903f83e1e1ad68803"
     }
   }
 }

@@ -16,8 +16,6 @@ import {
   Grid,
   InputAdornment,
   LinearProgress,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from '@mui/material'
@@ -36,15 +34,6 @@ import { toast } from 'react-toastify'
 import { eventsApi } from '@/api/events'
 import { useAppSelector } from '@/store/hooks'
 import type { Event, CreateEventDto, GetEventsParams } from '@/types'
-
-type StatusTab = 'all' | 'upcoming' | 'on_going' | 'ended'
-
-const STATUS_TABS: { value: StatusTab; label: string }[] = [
-  { value: 'all', label: '全部' },
-  { value: 'upcoming', label: '即将开始' },
-  { value: 'on_going', label: '进行中' },
-  { value: 'ended', label: '已结束' },
-]
 
 // ─── Create Event Dialog ─────────────────────────────────────────────────────
 
@@ -186,7 +175,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSignupChange }) => {
   }
 
   const isFull =
-    event.max_participants !== undefined &&
+    event.max_participants != null &&
     event.current_participants >= event.max_participants
 
   const handleSignup = async (e: React.MouseEvent) => {
@@ -320,7 +309,6 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSignupChange }) => {
 // ─── Events Page ──────────────────────────────────────────────────────────────
 
 const EventsPage: React.FC = () => {
-  const [tabValue, setTabValue] = useState<StatusTab>('all')
   const [keyword, setKeyword] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [events, setEvents] = useState<Event[]>([])
@@ -338,10 +326,13 @@ const EventsPage: React.FC = () => {
           page: currentPage,
           limit: 12,
           keyword: keyword || undefined,
-          status: tabValue === 'all' ? undefined : tabValue,
         }
         const res = await eventsApi.getEvents(params)
-        const newItems = res.data.data ?? []
+        const now = new Date()
+        const newItems = (res.data.data ?? []).filter((e) => {
+          if (e.end_time && new Date(e.end_time) < now) return false
+          return true
+        })
         if (reset) {
           setEvents(newItems)
           setPage(2)
@@ -357,16 +348,16 @@ const EventsPage: React.FC = () => {
         setLoading(false)
       }
     },
-    [tabValue, keyword, page]
+    [keyword, page]
   )
 
-  // Reset and reload when tab or search changes
+  // Reset and reload when search changes
   useEffect(() => {
     setPage(1)
     setHasMore(true)
     fetchEvents(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabValue, keyword])
+  }, [keyword])
 
   const handleSearch = () => {
     setKeyword(searchInput.trim())
@@ -391,19 +382,6 @@ const EventsPage: React.FC = () => {
           创建活动
         </Button>
       </Box>
-
-      {/* Status Tabs */}
-      <Tabs
-        value={tabValue}
-        onChange={(_e, v) => setTabValue(v as StatusTab)}
-        sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
-        variant="scrollable"
-        scrollButtons="auto"
-      >
-        {STATUS_TABS.map((t) => (
-          <Tab key={t.value} value={t.value} label={t.label} />
-        ))}
-      </Tabs>
 
       {/* Search */}
       <Box display="flex" gap={1} mb={3}>

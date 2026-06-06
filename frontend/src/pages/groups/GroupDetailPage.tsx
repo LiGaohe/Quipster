@@ -334,7 +334,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onSignupChange }) => {
   }
 
   const isFull =
-    event.max_participants !== undefined &&
+    event.max_participants != null &&
     event.current_participants >= event.max_participants
 
   const handleSignup = async (e: React.MouseEvent) => {
@@ -518,7 +518,11 @@ const GroupDetailPage: React.FC = () => {
     eventsApi
       .getEvents({ group_id: Number(groupId), page: 1, limit: 10 })
       .then((res) => {
-        setEvents(res.data.data ?? [])
+        const now = new Date()
+        setEvents((res.data.data ?? []).filter((e) => {
+          if (e.end_time && new Date(e.end_time) < now) return false
+          return true
+        }))
       })
       .catch(() => {
         setEvents([])
@@ -597,7 +601,11 @@ const GroupDetailPage: React.FC = () => {
     eventsApi
       .getEvents({ group_id: Number(groupId), page: 1, limit: 10 })
       .then((res) => {
-        setEvents(res.data.data ?? [])
+        const now = new Date()
+        setEvents((res.data.data ?? []).filter((e) => {
+          if (e.end_time && new Date(e.end_time) < now) return false
+          return true
+        }))
       })
   }
 
