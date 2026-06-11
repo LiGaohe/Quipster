@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "screenwright": "^0.3.0",
     "typescript": "^6.0.2"
   },
   "dependencies": {

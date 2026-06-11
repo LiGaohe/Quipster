@@ -1,31 +1,40 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAppSelector } from '@/store/hooks'
 
 import Layout from '@/components/layout/Layout'
 import AuthLayout from '@/components/layout/AuthLayout'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
 
-import LoginPage from '@/pages/auth/LoginPage'
-import RegisterPage from '@/pages/auth/RegisterPage'
-import TagSelectPage from '@/pages/auth/TagSelectPage'
+// 路由懒加载 - 按需加载页面组件
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'))
+const TagSelectPage = lazy(() => import('@/pages/auth/TagSelectPage'))
 
-import FeedPage from '@/pages/feed/FeedPage'
-import ProfilePage from '@/pages/profile/ProfilePage'
-import EditProfilePage from '@/pages/profile/EditProfilePage'
-import MatchPage from '@/pages/match/MatchPage'
-import ChatListPage from '@/pages/chat/ChatListPage'
-import ChatRoomPage from '@/pages/chat/ChatRoomPage'
-import GroupsPage from '@/pages/groups/GroupsPage'
-import GroupDetailPage from '@/pages/groups/GroupDetailPage'
-import EventsPage from '@/pages/events/EventsPage'
-import EventDetailPage from '@/pages/events/EventDetailPage'
-import AnonymousPage from '@/pages/anonymous/AnonymousPage'
-import AnonymousDetailPage from '@/pages/anonymous/AnonymousDetailPage'
-import QuestionsPage from '@/pages/questions/QuestionsPage'
-import QuestionDetailPage from '@/pages/questions/QuestionDetailPage'
-import StudyPage from '@/pages/study/StudyPage'
-import CreditPage from '@/pages/governance/CreditPage'
-import SearchPage from '@/pages/search/SearchPage'
-import NotFoundPage from '@/pages/NotFoundPage'
+const FeedPage = lazy(() => import('@/pages/feed/FeedPage'))
+const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
+const EditProfilePage = lazy(() => import('@/pages/profile/EditProfilePage'))
+const MatchPage = lazy(() => import('@/pages/match/MatchPage'))
+const ChatListPage = lazy(() => import('@/pages/chat/ChatListPage'))
+const ChatRoomPage = lazy(() => import('@/pages/chat/ChatRoomPage'))
+const GroupsPage = lazy(() => import('@/pages/groups/GroupsPage'))
+const GroupDetailPage = lazy(() => import('@/pages/groups/GroupDetailPage'))
+const EventsPage = lazy(() => import('@/pages/events/EventsPage'))
+const EventDetailPage = lazy(() => import('@/pages/events/EventDetailPage'))
+const AnonymousPage = lazy(() => import('@/pages/anonymous/AnonymousPage'))
+const AnonymousDetailPage = lazy(() => import('@/pages/anonymous/AnonymousDetailPage'))
+const QuestionsPage = lazy(() => import('@/pages/questions/QuestionsPage'))
+const QuestionDetailPage = lazy(() => import('@/pages/questions/QuestionDetailPage'))
+const StudyPage = lazy(() => import('@/pages/study/StudyPage'))
+const CreditPage = lazy(() => import('@/pages/governance/CreditPage'))
+const AdminReviewPage = lazy(() => import('@/pages/admin/AdminReviewPage'))
+const SearchPage = lazy(() => import('@/pages/search/SearchPage'))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
+
+// 懒加载包装器
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+}
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const user = useAppSelector((s) => s.auth.user)
@@ -48,7 +57,9 @@ export default function App() {
           path="/login"
           element={
             <GuestOnly>
-              <LoginPage />
+              <LazyPage>
+                <LoginPage />
+              </LazyPage>
             </GuestOnly>
           }
         />
@@ -56,7 +67,9 @@ export default function App() {
           path="/register"
           element={
             <GuestOnly>
-              <RegisterPage />
+              <LazyPage>
+                <RegisterPage />
+              </LazyPage>
             </GuestOnly>
           }
         />
@@ -64,7 +77,9 @@ export default function App() {
           path="/tags"
           element={
             <RequireAuth>
-              <TagSelectPage />
+              <LazyPage>
+                <TagSelectPage />
+              </LazyPage>
             </RequireAuth>
           }
         />
@@ -78,27 +93,28 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<FeedPage />} />
-        <Route path="/match" element={<MatchPage />} />
-        <Route path="/chat" element={<ChatListPage />} />
-        <Route path="/chat/:conversationId" element={<ChatRoomPage />} />
-        <Route path="/groups" element={<GroupsPage />} />
-        <Route path="/groups/:groupId" element={<GroupDetailPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/events/:eventId" element={<EventDetailPage />} />
-        <Route path="/anonymous" element={<AnonymousPage />} />
-        <Route path="/anonymous/:postId" element={<AnonymousDetailPage />} />
-        <Route path="/questions" element={<QuestionsPage />} />
-        <Route path="/questions/:questionId" element={<QuestionDetailPage />} />
-        <Route path="/study" element={<StudyPage />} />
-        <Route path="/credit" element={<CreditPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/edit" element={<EditProfilePage />} />
-        <Route path="/profile/:userId" element={<ProfilePage />} />
+        <Route index element={<LazyPage><FeedPage /></LazyPage>} />
+        <Route path="/match" element={<LazyPage><MatchPage /></LazyPage>} />
+        <Route path="/chat" element={<LazyPage><ChatListPage /></LazyPage>} />
+        <Route path="/chat/:conversationId" element={<LazyPage><ChatRoomPage /></LazyPage>} />
+        <Route path="/groups" element={<LazyPage><GroupsPage /></LazyPage>} />
+        <Route path="/groups/:groupId" element={<LazyPage><GroupDetailPage /></LazyPage>} />
+        <Route path="/events" element={<LazyPage><EventsPage /></LazyPage>} />
+        <Route path="/events/:eventId" element={<LazyPage><EventDetailPage /></LazyPage>} />
+        <Route path="/anonymous" element={<LazyPage><AnonymousPage /></LazyPage>} />
+        <Route path="/anonymous/:postId" element={<LazyPage><AnonymousDetailPage /></LazyPage>} />
+        <Route path="/questions" element={<LazyPage><QuestionsPage /></LazyPage>} />
+        <Route path="/questions/:questionId" element={<LazyPage><QuestionDetailPage /></LazyPage>} />
+        <Route path="/study" element={<LazyPage><StudyPage /></LazyPage>} />
+        <Route path="/credit" element={<LazyPage><CreditPage /></LazyPage>} />
+        <Route path="/admin/reports" element={<LazyPage><AdminReviewPage /></LazyPage>} />
+        <Route path="/search" element={<LazyPage><SearchPage /></LazyPage>} />
+        <Route path="/profile" element={<LazyPage><ProfilePage /></LazyPage>} />
+        <Route path="/profile/edit" element={<LazyPage><EditProfilePage /></LazyPage>} />
+        <Route path="/profile/:userId" element={<LazyPage><ProfilePage /></LazyPage>} />
       </Route>
 
-      <Route path="*" element={<NotFoundPage />} />
+      <Route path="*" element={<LazyPage><NotFoundPage /></LazyPage>} />
     </Routes>
   )
 }

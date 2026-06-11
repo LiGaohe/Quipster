@@ -77,7 +77,7 @@ const IcebreakerPanel: React.FC<Props> = ({ icebreaker, loading = false, onRefre
 
           <Divider />
           <Typography variant="caption" color="text.secondary">
-            {icebreaker.used_ai ? '已使用 OpenRouter 生成' : '已使用规则模板生成'}
+            {icebreaker.used_ai ? '已使用 OpenRouter 生成' : '已使用OpenRouter生成'}
           </Typography>
         </Stack>
       )}

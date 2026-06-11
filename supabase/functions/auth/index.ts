@@ -182,7 +182,7 @@ async function handleLogin(req: Request): Promise<Response> {
   const admin = createAdminClient()
   const { data: profile } = await admin
     .from('users')
-    .select('id, email, nickname, avatar_url, credit_score')
+    .select('id, email, nickname, avatar_url, credit_score, role')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -200,6 +200,7 @@ async function handleLogin(req: Request): Promise<Response> {
       nickname: profile?.nickname ?? null,
       avatar_url: profile?.avatar_url ?? null,
       credit_score: profile?.credit_score ?? 100,
+      role: (profile as { role?: string })?.role ?? 'user',
     },
   })
 }

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -13,10 +14,11 @@ import {
   IconButton,
   Typography,
 } from '@mui/material'
-import { Close, Favorite, FavoriteBorder } from '@mui/icons-material'
+import { Close, Favorite, FavoriteBorder, Warning } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { matchesApi } from '@/api/matches'
 import IcebreakerPanel from '@/components/chat/IcebreakerPanel'
+import { useAppSelector } from '@/store/hooks'
 import type { IcebreakerSuggestion, MatchUser } from '@/types'
 
 const CARD_TRANSITION = 'transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease'
@@ -25,6 +27,9 @@ type SlideDir = 'left' | 'right' | null
 
 const MatchPage: React.FC = () => {
   const navigate = useNavigate()
+  const user = useAppSelector((s) => s.auth.user)
+  const creditScore = user?.credit_score ?? 100
+  const isLowCredit = creditScore < 50
 
   const [queue, setQueue] = useState<MatchUser[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -132,6 +137,17 @@ const MatchPage: React.FC = () => {
       <Typography variant="h5" fontWeight={700} textAlign="center" mb={3}>
         发现新朋友
       </Typography>
+
+      {/* Low credit warning */}
+      {isLowCredit && (
+        <Alert
+          severity="error"
+          icon={<Warning fontSize="inherit" />}
+          sx={{ mb: 3, borderRadius: 2 }}
+        >
+          你的信用分（{creditScore}分）低于 50 分，匹配功能已受限。请规范使用平台以恢复信用分。
+        </Alert>
+      )}
 
       {/* Empty state */}
       {isExhausted && (
@@ -287,7 +303,7 @@ const MatchPage: React.FC = () => {
               variant="contained"
               color="error"
               size="large"
-              disabled={actionLoading}
+              disabled={actionLoading || isLowCredit}
               onClick={() => handleAction('like')}
               sx={{
                 borderRadius: '50%',

@@ -11,6 +11,12 @@
       "sourceType": "github",
       "computedHash": "cf63f007c40471b04009b55107f2c930483bb025a6c938e1408d59fb22cb1c69"
     },
+    "playwright-best-practices": {
+      "source": "currents-dev/playwright-best-practices-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "6db654e753257e642d6507d59b4fc633a2382e93429748ba0fb6817c23ef5216"
+    },
     "presentation-design": {
       "source": "jwynia/agent-skills",
       "sourceType": "github",
@@ -27,6 +33,12 @@
       "sourceType": "github",
       "skillPath": "packages/skills/script-writer/SKILL.md",
       "computedHash": "ce5a1bfe17aa583451676436485eb655e677a87da0d164b903f83e1e1ad68803"
+    },
+    "timing-mastery": {
+      "source": "dylantarre/animation-principles",
+      "sourceType": "github",
+      "skillPath": "skills/02-by-thinking-style/timing-mastery/SKILL.md",
+      "computedHash": "0d612d09ea4a479f4ddb2d27f7499e2dd4062bcaf8aa0ce6048c9209a6dc2d14"
     }
   }
 }

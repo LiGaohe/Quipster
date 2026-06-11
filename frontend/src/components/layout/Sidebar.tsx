@@ -9,6 +9,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import HelpIcon from '@mui/icons-material/Help'
 import SchoolIcon from '@mui/icons-material/School'
 import StarIcon from '@mui/icons-material/Star'
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { logoutUser } from '@/store/slices/authSlice'
@@ -109,6 +110,31 @@ export default function Sidebar() {
             </ListItem>
           )
         })}
+
+        {/* Admin entry - only visible to admins */}
+        {user?.role === 'admin' && (
+          <>
+            <Divider sx={{ my: 1 }} />
+            <ListItem disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                onClick={() => navigate('/admin/reports')}
+                selected={location.pathname === '/admin/reports'}
+                sx={{
+                  borderRadius: 2,
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    '& .MuiListItemIcon-root': { color: 'white' },
+                    '&:hover': { bgcolor: 'primary.dark' },
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}><AdminPanelSettingsIcon /></ListItemIcon>
+                <ListItemText primary="举报审核" primaryTypographyProps={{ fontSize: 14, fontWeight: location.pathname === '/admin/reports' ? 600 : 400 }} />
+              </ListItemButton>
+            </ListItem>
+          </>
+        )}
       </List>
 
       <Divider />

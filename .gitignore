@@ -5,3 +5,11 @@
 .code-review-graph/
 /Files
 .*
+docs/答辩准备/前端性能优化.md
+.env
+docs/
+frontend/test-results/performance-首次访问性能测量-performance/trace.zip
+frontend/tests/
+frontend/test-results/
+supabase/migrations/
+supabase/migrations_backup/

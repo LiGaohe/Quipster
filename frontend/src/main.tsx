@@ -10,6 +10,14 @@ import 'react-toastify/dist/ReactToastify.css'
 import { store } from '@/store'
 import theme from '@/theme'
 import App from './App'
+import { registerServiceWorker } from '@/lib/serviceWorker'
+
+// 注册 Service Worker（仅生产环境）
+if (import.meta.env.PROD) {
+  registerServiceWorker().catch(() => {
+    // 注册失败不影响应用启动
+  })
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

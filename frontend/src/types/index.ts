@@ -37,6 +37,7 @@ export interface User {
   grade?: string
   bio?: string
   credit_score: number
+  role?: 'admin' | 'user'
   visibility: 0 | 1
   created_at: string
 }
